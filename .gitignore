@@ -1,0 +1,8 @@
+*.pro.user
+*.o
+*.exe
+*.jar
+
+!lib/addr2line.exe
+
+!lib/spl.jar
