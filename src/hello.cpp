@@ -6,44 +6,55 @@
 #include "vector.h"  // for Vector
 using namespace std;
 
-int WIDTH = 500;
-int HEIGHT = 300;
+int SIZE = 500;
 
-int X_BUFFER = 40;
+int OUTER_DIAMETER = int(0.75 * double(SIZE));
+int OUTER_RADIUS = int(OUTER_DIAMETER / 2);
 
-int X_START = -1 * X_BUFFER;
+int EDGE_OFFSET = (SIZE - OUTER_DIAMETER) / 2;
 
-int OVAL_HEIGHT = int(1.2 * double(HEIGHT));
-int OVAL_WIDTH = WIDTH + 2 * X_BUFFER;
-
-int BAND_HEIGHT = 20;
-
+int INNER_RADIUS = int(0.166666667 * double(OUTER_RADIUS));
 
 int main() {
-    GWindow window(WIDTH, HEIGHT);
+    GWindow window(SIZE, SIZE);
 
-    window.setWindowTitle("Sample Project");
+    window.setWindowTitle("Yin-Yang");
 
-    window.setColor("cyan");
-    window.fillRect(0, 0, WIDTH, HEIGHT);
+    window.setColor("white");
+    window.fillRect(0, 0, SIZE, SIZE);
 
-    Vector<string> colors;
-    colors.add("red");
-    colors.add("orange");
-    colors.add("yellow");
-    colors.add("green");
-    colors.add("blue");
-    colors.add("magenta");
-    colors.add("magenta");
+    // draw the outer circle
+    window.setColor("black");
+    window.fillOval(EDGE_OFFSET, EDGE_OFFSET, OUTER_DIAMETER, OUTER_DIAMETER);
 
-    int Y_OFFSET = HEIGHT - (int(OVAL_HEIGHT/3) + colors.size() * BAND_HEIGHT);
+    // draw the left semi cirle with the inside white
+    window.setColor("white");
+    window.fillRect(EDGE_OFFSET, EDGE_OFFSET, OUTER_DIAMETER/2, OUTER_DIAMETER);
+    window.setColor("black");	// draw the left edge of the left side semi-circle
+    window.drawOval(EDGE_OFFSET, EDGE_OFFSET, OUTER_DIAMETER, OUTER_DIAMETER);
 
-    for (int i = 0; i < colors.size(); i++) {
-        window.setColor(colors.get(i));
-        window.fillOval(X_START, Y_OFFSET + i * BAND_HEIGHT, OVAL_WIDTH, OVAL_HEIGHT);
-    }
-    window.setColor("cyan");
-    window.fillOval(X_START, Y_OFFSET + (colors.size() - 1) * BAND_HEIGHT, OVAL_WIDTH, OVAL_HEIGHT);
+    int upper_x = int(SIZE/2 - (OUTER_DIAMETER / 4));
+    int upper_y = EDGE_OFFSET + 1;
+    int upper_size = int(OUTER_DIAMETER / 2) - 1;	// the -1 is so it just skimms the border(we don't want it to touch)
+
+    int lower_x = upper_x;
+    int lower_y = SIZE/2;
+    int lower_size = upper_size;
+
+    window.setColor("white");
+    window.fillOval(upper_x, upper_y, upper_size, upper_size);
+    window.setColor("black");
+    window.fillOval(lower_x, lower_y, lower_size, lower_size);
+
+    int inner_size = (OUTER_DIAMETER/6);
+    int inner_x = SIZE/2 - (inner_size/2);
+    int inner_upper_y = SIZE/2 - 2*(inner_size);
+    int inner_lower_y = SIZE/2 + 1*(inner_size);
+
+    window.setColor("black");
+    window.fillOval(inner_x, inner_upper_y, inner_size, inner_size);
+    window.setColor("white");
+    window.fillOval(inner_x, inner_lower_y, inner_size, inner_size);
 
     window.setVisible(true);
 
