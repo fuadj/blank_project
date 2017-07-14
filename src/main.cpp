@@ -1,26 +1,25 @@
 #include "console.h" // "console.h" needs to be included to work with StanfordLib, it otherwise WON'T compile
 #include <iostream>
-#include <string>
 #include <fstream>
+#include <string>
+#include <sstream>
+#include "random.h"
+
 using namespace std;
 
 string promptUserForFile(ifstream & infile, string prompt = "");
 
-int stringToInteger(string s) {
-    return atoi(s.c_str());
-}
+string scrambleLine(string & line);
 
 int main() {
     ifstream infile;
     promptUserForFile(infile, "Input file: ");
 
-    int total = 0;
     string line;
     while (getline(infile, line)) {
-        total += stringToInteger(line);
+        cout << scrambleLine(line) << endl;
     }
     infile.close();
-    cout << "The sum is " << total << endl;
     return 0;
 }
 
@@ -38,3 +37,31 @@ string promptUserForFile(ifstream & infile, string prompt) {
             prompt = "Input file: ";
     }
 }
+
+string scrambleLine(string &line) {
+    string UPPER_CASE = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    string LOWER_CASE = "abcdefghijklmnopqrstuvwxyz";
+    int ALPHABET_SIZE = UPPER_CASE.size();
+    ostringstream result;
+    istringstream lineStream(line);
+
+    int ch;
+    while ((ch = lineStream.get()) != EOF)  {
+        if (!isalpha(ch)) {
+            result << ch;
+            continue;
+        }
+
+        int rand_index = randomInteger(0, ALPHABET_SIZE);
+        char replacement;
+        if (isupper(ch)) {
+            replacement = UPPER_CASE[rand_index];
+        } else {
+            replacement = LOWER_CASE[rand_index];
+        }
+        result << replacement;
+    }
+
+    return result.str();
+}
+
