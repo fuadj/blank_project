@@ -6,14 +6,21 @@ using namespace std;
 
 string promptUserForFile(ifstream & infile, string prompt = "");
 
+int stringToInteger(string s) {
+    return atoi(s.c_str());
+}
+
 int main() {
     ifstream infile;
     promptUserForFile(infile, "Input file: ");
-    char ch;
-    while (infile.get(ch)) {
-        cout.put(ch);
+
+    int total = 0;
+    string line;
+    while (getline(infile, line)) {
+        total += stringToInteger(line);
     }
     infile.close();
+    cout << "The sum is " << total << endl;
     return 0;
 }
 
