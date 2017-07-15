@@ -4,135 +4,48 @@
 #include <string>
 #include <sstream>
 #include "random.h"
+#include "filelib.h"
 
 using namespace std;
 
-string promptUserForFile(ifstream & infile, string prompt = "");
-
-string scrambleLine1(string & line);
-string scrambleLine2(string & line);
-void removeComments(istream &is, ostream &os);
+void removeLetters(istream &is, ostream &os, string letters);
 
 int main() {
     ifstream infile;
-    promptUserForFile(infile, "Input file: ");
+    ofstream outfile;
+    string banished_letters;
 
-    removeComments(infile, cout);
+    promptUserForFile(infile, "Input file: ");
+    //promptUserForFile(outfile, "Output file: ");
+
+    cout << "Letters to banish: ";
+    getline(cin, banished_letters);
+
+    for (int i = 0; i < banished_letters.size(); i++) {
+        banished_letters[i] = tolower(banished_letters[i]);
+    }
+    //removeLetters(infile, outfile, banished_letters);
+    removeLetters(infile, cout, banished_letters);
+
     infile.close();
+    outfile.close();
+
     return 0;
 }
 
-string promptUserForFile(ifstream & infile, string prompt) {
-    while (true) {
-        cout << prompt;
-        string filename;
-        getline(cin, filename);
-        infile.open(filename.c_str());
-        if (!infile.fail())
-            return filename;
-        infile.clear();
-        cout << "Unable to open that file. Try again. " << endl;
-        if (prompt == "")
-            prompt = "Input file: ";
-    }
-}
-
-string UPPER_CASE = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-string LOWER_CASE = "abcdefghijklmnopqrstuvwxyz";
-int ALPHABET_SIZE = UPPER_CASE.size();
-
-void removeComments(istream & is, ostream & os) {
-    bool line_comment = false;
-    bool multi_line_comment = false;
-
-    int prev_ch;
+void removeLetters(istream &is, ostream &os, string letters) {
     int ch;
-    bool prev_comment = false;
-
-    prev_ch = is.get();
-    if (prev_ch == EOF) return;
-
-    if (prev_ch != '/') {
-        os.put((char)prev_ch);
-    }
-
-    bool was_inside_comment = false;
-    while ((ch = is.get()) != EOF)  {
-        was_inside_comment = line_comment || multi_line_comment;
-        if (ch == '/') {
-            if (prev_ch == '/') {
-                if (!multi_line_comment) {
-                    line_comment = true;
-                }
-            } else if (prev_ch == '*') {
-                if (multi_line_comment) {
-                    multi_line_comment = false;
-                }
+    while ((ch = is.get()) != EOF) {
+        bool skip_letter = false;
+        int lower_ch = tolower(ch);
+        for (int i = 0; i < letters.size(); i++) {
+            if ((char)lower_ch == letters[i]) {
+                skip_letter = true;
+                break;
             }
-        } else if (ch == '*' && prev_ch == '/') {
-            if (!line_comment) {
-                multi_line_comment = true;
-            }
-        } else if (ch == '\n') {
-            line_comment = false;
         }
-
-        //printf("[%c,%d], ", (char)ch, ch);
-
-        if (ch == '/') {
-        } else if (!(line_comment || multi_line_comment)) {
-            if (prev_ch == '/' && !prev_comment) {
-                os.put((char)prev_ch);
-            }
+        if (!skip_letter) {
             os.put((char)ch);
         }
-
-        prev_comment = was_inside_comment || line_comment || multi_line_comment;
-        prev_ch = ch;
     }
-}
-
-string scrambleLine1(string &line) {
-    ostringstream result;
-    istringstream lineStream(line);
-
-    int ch;
-    while ((ch = lineStream.get()) != EOF)  {
-        if (!isalpha(ch)) {
-            result << (char)ch;
-            continue;
-        }
-
-        int rand_index = randomInteger(0, ALPHABET_SIZE);
-        char replacement;
-        if (isupper(ch)) {
-            replacement = UPPER_CASE[rand_index];
-        } else {
-            replacement = LOWER_CASE[rand_index];
-        }
-        result << replacement;
-    }
-
-    return result.str();
-}
-
-string scrambleLine2(string &line) {
-    string result;
-    for (int i = 0; i < line.size(); i++) {
-        char ch = line[i];
-        if (!isalpha(ch)) {
-            result += ch;
-            continue;
-        }
-
-        int rand_index = randomInteger(0, ALPHABET_SIZE);
-        char replacement;
-        if (isupper(ch)) {
-            replacement = UPPER_CASE[rand_index];
-        } else {
-            replacement = LOWER_CASE[rand_index];
-        }
-        result += replacement;
-    }
-    return result;
 }
