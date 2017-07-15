@@ -11,17 +11,13 @@ string promptUserForFile(ifstream & infile, string prompt = "");
 
 string scrambleLine1(string & line);
 string scrambleLine2(string & line);
+void removeComments(istream &is, ostream &os);
 
 int main() {
     ifstream infile;
     promptUserForFile(infile, "Input file: ");
 
-    //setRandomSeed(time(NULL));
-    setRandomSeed(0);
-    string line;
-    while (getline(infile, line)) {
-        cout << scrambleLine2(line) << endl;
-    }
+    removeComments(infile, cout);
     infile.close();
     return 0;
 }
@@ -44,6 +40,57 @@ string promptUserForFile(ifstream & infile, string prompt) {
 string UPPER_CASE = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 string LOWER_CASE = "abcdefghijklmnopqrstuvwxyz";
 int ALPHABET_SIZE = UPPER_CASE.size();
+
+void removeComments(istream & is, ostream & os) {
+    bool line_comment = false;
+    bool multi_line_comment = false;
+
+    int prev_ch;
+    int ch;
+    bool prev_comment = false;
+
+    prev_ch = is.get();
+    if (prev_ch == EOF) return;
+
+    if (prev_ch != '/') {
+        os.put((char)prev_ch);
+    }
+
+    bool was_inside_comment = false;
+    while ((ch = is.get()) != EOF)  {
+        was_inside_comment = line_comment || multi_line_comment;
+        if (ch == '/') {
+            if (prev_ch == '/') {
+                if (!multi_line_comment) {
+                    line_comment = true;
+                }
+            } else if (prev_ch == '*') {
+                if (multi_line_comment) {
+                    multi_line_comment = false;
+                }
+            }
+        } else if (ch == '*' && prev_ch == '/') {
+            if (!line_comment) {
+                multi_line_comment = true;
+            }
+        } else if (ch == '\n') {
+            line_comment = false;
+        }
+
+        //printf("[%c,%d], ", (char)ch, ch);
+
+        if (ch == '/') {
+        } else if (!(line_comment || multi_line_comment)) {
+            if (prev_ch == '/' && !prev_comment) {
+                os.put((char)prev_ch);
+            }
+            os.put((char)ch);
+        }
+
+        prev_comment = was_inside_comment || line_comment || multi_line_comment;
+        prev_ch = ch;
+    }
+}
 
 string scrambleLine1(string &line) {
     ostringstream result;

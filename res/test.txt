@@ -1,2 +1,18 @@
-THis is just a Test file, it doesn't need
-to be anything serous ok!23
+This is an example of /* a computer program */
+when t/he comments ar// removed it will make
+int main() {
+    abc/d laks*/dj*//fjkj
+
+0
+
+    jlkjasldk// sdajflksajdf// sdfljklsdjf//
+    /*
+
+
+sdflajkjsd fljsadf
+
+sadf //////
+
+sdf*/
+return 0;
+}
