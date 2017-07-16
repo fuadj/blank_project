@@ -7,6 +7,8 @@
 #include "error.h"
 #include "simpio.h"
 #include "stack.h"
+#include "queue.h"
+#include "random.h"
 
 using namespace std;
 
@@ -14,97 +16,46 @@ void applyOperator(char op, Stack<double> & operandStack);
 void helpCommand();
 
 int main() {
-    cout << "RPC Calculator (type H for help)" << endl;
-    Stack<double> operandStack;
-    while (true) {
-        string line = getLine("> ");
-        if (line.length() == 0) line = "Q";
-        char ch = toupper(line[0]);
-        if (ch == 'Q') {
-            break;
-        } else if (ch == 'C') {
-            operandStack.clear();
-        } else if (ch == 'H') {
-            helpCommand();
-        } else if (isdigit(ch)) {
-            operandStack.push(stringToReal(line));
-        } else {
-            applyOperator(ch, operandStack);
+    const int SIMULATION_TIME = 100;
+    const int SERVICE_TIME = 13;
+    const int ARRIVAL_TIME = 20;
+
+    setRandomSeed(0);
+
+    Queue<int> waitingLine;
+    Stack<int> serviceTimes;
+
+    int next_arrival;
+
+    next_arrival = randomInteger(0, ARRIVAL_TIME);
+    for (int i = 0; i < SIMULATION_TIME; i++) {
+        if (i == next_arrival) {
+
+            // schedule the next arrival time
+            next_arrival = i + randomInteger(0, ARRIVAL_TIME);
+
+            int last_service_time = i;
+            if (!serviceTimes.isEmpty()) {
+                last_service_time = serviceTimes.peek();
+                if (last_service_time < i)
+                    last_service_time = i;
+            }
+            int service_end_time = last_service_time + randomInteger(0, SERVICE_TIME);
+            waitingLine.enqueue(service_end_time);
+            serviceTimes.push(service_end_time);
+            cout << "Customer arrived at " << i << " will finish at " << service_end_time << endl;
+        }
+
+        if (waitingLine.isEmpty()) continue;
+
+        // if the customer's end time is reached, "finsh" their service
+        if (waitingLine.peek() == i) {
+            waitingLine.dequeue();
+            cout << "Customer Serviced " << i << endl;
         }
     }
+
+    cout << "Line finished" << endl;
+
     return 0;
 }
-
-void applyOperator(char op, Stack<double> &operandStack) {
-    if (operandStack.size() < 2) return;
-
-    double right_side = operandStack.pop();
-    double left_side = operandStack.pop();
-
-    double result;
-    bool computed_result = true;
-
-    switch (op) {
-    case '+':
-        result = left_side + right_side;
-        break;
-    case '-':
-        result = left_side - right_side;
-        break;
-    case '*':
-        result = left_side * right_side;
-        break;
-    case '/':
-        if (right_side != 0)
-            result = left_side / right_side;
-        else
-            result = 0;
-        break;
-    default:
-        computed_result = false;
-        break;
-    }
-
-    if (computed_result) {
-        operandStack.push(result);
-        cout << result << endl;
-    } else {
-        operandStack.push(left_side);
-    }
-}
-
-void helpCommand() {
-    cout << "Enter expressions in Reverse Polish Notation," << endl;
-    cout << "in which operators follow the operand to which" << endl;
-    cout << "they apply. Each line consists of a number, an" << endl;
-    cout << "operator, or one of the followign commands:" << endl;
-    cout << " Q -- Quit the program" << endl;
-    cout << " H -- Display this help message " << endl;
-    cout << " C -- Clear the calculator stack" << endl;
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
