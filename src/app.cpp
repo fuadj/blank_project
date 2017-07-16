@@ -1,61 +1,80 @@
 #include "console.h" // "console.h" needs to be included to work with StanfordLib, it otherwise WON'T compile
 #include <iostream>
-#include <fstream>
-#include <cctype>
 #include <iomanip>
-#include <string>
-#include "error.h"
-#include "simpio.h"
-#include "stack.h"
 #include "queue.h"
 #include "random.h"
-
 using namespace std;
 
-void applyOperator(char op, Stack<double> & operandStack);
-void helpCommand();
+const double ARRIVAL_PROBABILITY = 0.05;
+//const double ARRIVAL_PROBABILITY = 0.1;
+const int MIN_SERVICE_TIME = 5;
+const int MAX_SERVICE_TIME = 15;
+const int SIMULATION_TIME = 2000;
+
+void runSimulation(int & nServed, int & totalWait, int & totalLength);
+void printReport(int nServed, int totalWait, int totalLength);
 
 int main() {
-    const int SIMULATION_TIME = 100;
-    const int SERVICE_TIME = 13;
-    const int ARRIVAL_TIME = 20;
-
-    setRandomSeed(0);
-
-    Queue<int> waitingLine;
-    Stack<int> serviceTimes;
-
-    int next_arrival;
-
-    next_arrival = randomInteger(0, ARRIVAL_TIME);
-    for (int i = 0; i < SIMULATION_TIME; i++) {
-        if (i == next_arrival) {
-
-            // schedule the next arrival time
-            next_arrival = i + randomInteger(0, ARRIVAL_TIME);
-
-            int last_service_time = i;
-            if (!serviceTimes.isEmpty()) {
-                last_service_time = serviceTimes.peek();
-                if (last_service_time < i)
-                    last_service_time = i;
-            }
-            int service_end_time = last_service_time + randomInteger(0, SERVICE_TIME);
-            waitingLine.enqueue(service_end_time);
-            serviceTimes.push(service_end_time);
-            cout << "Customer arrived at " << i << " will finish at " << service_end_time << endl;
-        }
-
-        if (waitingLine.isEmpty()) continue;
-
-        // if the customer's end time is reached, "finsh" their service
-        if (waitingLine.peek() == i) {
-            waitingLine.dequeue();
-            cout << "Customer Serviced " << i << endl;
-        }
-    }
-
-    cout << "Line finished" << endl;
-
+    int nServed;
+    int totalWait;
+    int totalLength;
+    runSimulation(nServed, totalWait, totalLength);
+    printReport(nServed, totalWait, totalLength);
     return 0;
 }
+
+void runSimulation(int & nServed, int & totalWait, int & totalLength) {
+    Queue<int> queue;
+    int timeRemaining = 0;
+    nServed = 0;
+    totalWait = 0;
+    totalLength = 0;
+    for (int t = 0; t < SIMULATION_TIME; t++) {
+        if (randomChance(ARRIVAL_PROBABILITY)) {
+            queue.enqueue(t);
+        }
+        if (timeRemaining > 0) {
+            timeRemaining--;
+        } else if (!queue.isEmpty()) {
+            totalWait += t - queue.dequeue();
+            nServed++;
+            timeRemaining = randomInteger(MIN_SERVICE_TIME, MAX_SERVICE_TIME);
+        }
+        totalLength += queue.size();
+    }
+}
+
+void printReport(int nServed, int totalWait, int totalLength) {
+    cout << "Simulation results given the following constants:" << endl;
+    cout << fixed << setprecision(2);
+    cout << "  SIMULATION_TIME:     " << setw(4)
+         << SIMULATION_TIME << endl;
+    cout << "  ARRIVAL_PROBABILITY: " << setw(7)
+         << ARRIVAL_PROBABILITY << endl;
+    cout << "  MIN_SERVICE_TIME:    " << setw(4)
+         << MIN_SERVICE_TIME << endl;
+    cout << "  MAX_SERVICE_TIME:    " << setw(4)
+         << MAX_SERVICE_TIME << endl;
+    cout << endl;
+    cout << "Customers served:      " << setw(4) << nServed << endl;
+    cout << "Average waiting time:  " << setw(7)
+         << double(totalWait) / nServed << endl;
+    cout << "Average queue length:  " << setw(7)
+         << double(totalLength) / SIMULATION_TIME << endl;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
