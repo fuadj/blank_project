@@ -3,6 +3,7 @@
 *.exe
 *.jar
 
+res/*
 !lib/addr2line.exe
 
 !lib/spl.jar
