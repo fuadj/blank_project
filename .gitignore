@@ -3,6 +3,15 @@
 *.exe
 *.jar
 
+res/
+
+# we want res/.gitignore to always exist b/c without it the res/ folder
+# will not exist if there are no files inside it
+!res/.gitignore
+
+# we don't wanna delete this file as it is hard to get
+!res/EnglishWords.dat
+
 !lib/addr2line.exe
 
 !lib/spl.jar
