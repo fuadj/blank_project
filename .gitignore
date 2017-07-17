@@ -4,6 +4,10 @@
 *.jar
 
 res/*
+
+# we don't wanna delete this file as it is hard to get
+!res/EnglishWords.dat
+
 !lib/addr2line.exe
 
 !lib/spl.jar
