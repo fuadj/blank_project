@@ -10,51 +10,46 @@
 #include "vector.h"
 using namespace std;
 
-void countWords(istream & stream, Map<string, int> & wordCounts);
-void displayWordCounts(Map<string, int> & wordCounts);
-void extractWords(string line, Vector<string> & words);
+void readVector(istream & in, Vector<double> & vec);
+// you get the point, won't implement the rest
+void readVector(istream & in, Vector<int> & vec);
+void readVector(istream & in, Vector<string> & vec);
+
+void printVec(Vector<double> & vec);
 
 int main() {
     ifstream infile;
-    Map<string, int> wordCounts;
+    Vector<double> roots;
     promptUserForFile(infile, "Input file: ");
-    countWords(infile, wordCounts);
+
+    for (int i = 1; i <= 3; i++) {
+        cout << "Print -------- " << i << endl;
+        readVector(infile, roots);
+        printVec(roots);
+    }
+
     infile.close();
-    displayWordCounts(wordCounts);
     return 0;
 }
 
-void countWords(istream &stream, Map<string, int> &wordCounts) {
-    Vector<string> lines, words;
-    readEntireFile(stream, lines);
-    for (string line : lines) {
-        extractWords(line, words);
-        for (string word : words) {
-            wordCounts[toLowerCase(word)]++;
-        }
+void printVec(Vector<double> & vec) {
+    for (double d : vec) {
+        cout << d << endl;
     }
 }
 
-void displayWordCounts(Map<string, int> &wordCounts) {
-    for (string word : wordCounts) {
-        cout << left << setw(15) << word
-             << right << setw(5) << wordCounts[word] << endl;
-    }
-}
+void readVector(istream & in, Vector<double> & vec) {
+    string line;
+    double val;
 
-void extractWords(string line, Vector<string> &words) {
-    words.clear();
-    int start = -1;
-    for (int i = 0; i < line.length(); i++) {
-        if (isalpha(line[i])) {
-            if (start == -1) start = i;
-        } else {
-            if (start >= 0) {
-                words.add(line.substr(start, i - start));
-                start = -1;
-            }
-        }
-    }
+    if (in.peek() == EOF) vec.clear();
 
-    if (start >= 0) words.add(line.substr(start));
+    while (getline(in, line)) {
+        if (line == "") break;
+
+        std::istringstream stream(line);
+        stream >> val;
+        if (!stream.fail())
+            vec.push_back(val);
+    }
 }
