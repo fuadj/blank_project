@@ -1,52 +1,31 @@
 #include "console.h" // "console.h" needs to be included to work with StanfordLib, it otherwise WON'T compile
 #include <iostream>
-#include <iomanip>
 #include <string>
 #include "vector.h"
-#include "math.h"
+#include "grid.h"
 using namespace std;
 
-/**
- * @brief findPrimes searches for primes till the number n included and stores the result
- */
-void findPrimes(int n, Vector<int> & primes) {
-    primes.clear();
-    const int START = 2;
-
-    Vector<bool> numbers;
-
-    numbers.add(true);	// these 2 are dummy place holders for numbers 0 & 1
-    numbers.add(true);  // we wanted the array index to match the number directly
-
-    // all number start out "primes"
-    for (int i = START; i <= n; i++) {
-        numbers.add(true);
-    }
-
-    for (int i = START; i <= n; i++) {
-        // ignore the number, start with its next multiple and cross the rest off
-        for (int j = 2 * i; j <= n; j += i) {
-            numbers[j] = false;
-        }
-    }
-
-    for (int i = START; i <= n; i++) {
-        if (numbers[i])
-            primes.add(i);
-    }
-}
+void fillGrid(Grid<int> & grid, Vector<int> & values);
 
 int main() {
-    Vector<int> primes;
-
-    findPrimes(1000, primes);
-
-    int print_width = int(log10(primes[primes.size() - 1])) + 1;
-
-    cout << "These numbers are primes: " << endl;
-    for (int prime : primes) {
-        cout << right << setw(print_width) << prime << endl;
-    }
-
+    Grid<int> matrix(3, 3);
+    Vector<int> values;
+    values += 1, 2, 3;
+    values += 4, 5, 6;
+    values += 7, 8, 9;
+    fillGrid(matrix, values);
+    cout << "The Grid: " << matrix.toString() << endl;
     return 0;
+}
+
+void fillGrid(Grid<int> & grid, Vector<int> & values) {
+    int filled = 0;
+    for (int row = 0; row < grid.numRows(); row++) {
+        for (int col = 0; col < grid.numCols(); col++) {
+            if (filled++ == values.size())
+                return;
+
+            grid[row][col] = values[row * grid.numRows() + col];
+        }
+    }
 }
