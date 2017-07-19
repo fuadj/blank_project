@@ -8,25 +8,26 @@
 #include "map.h"
 #include "strlib.h"
 #include "vector.h"
+#include "error.h"
 using namespace std;
 
-void readVector(istream & in, Vector<double> & vec);
-// you get the point, won't implement the rest
 void readVector(istream & in, Vector<int> & vec);
-void readVector(istream & in, Vector<string> & vec);
 
-void printVec(Vector<double> & vec);
+void countRanges(Vector<int> & numbers, Vector<int> & ranges);
+void printHistogram(Vector<int> & vec);
 
+const int NUM_RANGES = 11;
 int main() {
     ifstream infile;
-    Vector<double> roots;
+    Vector<int> ints;
+    Vector<int> ranges(NUM_RANGES);
+
     promptUserForFile(infile, "Input file: ");
 
-    for (int i = 1; i <= 3; i++) {
-        cout << "Print -------- " << i << endl;
-        readVector(infile, roots);
-        printVec(roots);
-    }
+    readVector(infile, ints);
+
+    countRanges(ints, ranges);
+    printHistogram(ranges);
 
     infile.close();
     return 0;
@@ -38,15 +39,42 @@ void printVec(Vector<double> & vec) {
     }
 }
 
-void readVector(istream & in, Vector<double> & vec) {
-    string line;
-    double val;
+void countRanges(Vector<int> & numbers, Vector<int> & ranges) {
+    if (ranges.size() != NUM_RANGES)
+        error("Program only works for the range [0-100]");
 
-    if (in.peek() == EOF) vec.clear();
+    for (int i = 0; i < numbers.size(); i++) {
+        int bucket = (numbers[i] / 10);		// we want integer division here, we don't want reminder
+
+        if (bucket >= NUM_RANGES)
+            bucket = NUM_RANGES - 1;
+        else if (bucket < 0)
+            bucket = 0;
+
+        ranges[bucket]++;
+    }
+}
+
+void printHistogram(Vector<int> &ranges) {
+    for (int i = 0; i < NUM_RANGES; i++) {
+        if (i == 10)
+            cout << "100: ";
+        else if (i == 0)
+            cout << "00s: ";
+        else
+            cout << i * 10 << "s: ";
+
+        for (int j = 0; j < ranges[i]; j++)
+            cout << "*";
+        cout << endl;
+    }
+}
+
+void readVector(istream & in, Vector<int> & vec) {
+    string line;
+    int val;
 
     while (getline(in, line)) {
-        if (line == "") break;
-
         std::istringstream stream(line);
         stream >> val;
         if (!stream.fail())
