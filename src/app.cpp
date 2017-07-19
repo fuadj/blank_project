@@ -1,41 +1,52 @@
 #include "console.h" // "console.h" needs to be included to work with StanfordLib, it otherwise WON'T compile
 #include <iostream>
-#include <fstream>
 #include <iomanip>
 #include <string>
-#include <cctype>
-#include "filelib.h"
-#include "map.h"
-#include "strlib.h"
 #include "vector.h"
-#include "error.h"
-#include "hist.h"
+#include "math.h"
 using namespace std;
 
-void readVector(istream & in, Vector<int> & vec);
+/**
+ * @brief findPrimes searches for primes till the number n included and stores the result
+ */
+void findPrimes(int n, Vector<int> & primes) {
+    primes.clear();
+    const int START = 2;
 
-int main() {
-    ifstream infile;
-    Vector<int> numbers;
+    Vector<bool> numbers;
 
-    promptUserForFile(infile, "Input file: ");
+    numbers.add(true);	// these 2 are dummy place holders for numbers 0 & 1
+    numbers.add(true);  // we wanted the array index to match the number directly
 
-    readVector(infile, numbers);
+    // all number start out "primes"
+    for (int i = START; i <= n; i++) {
+        numbers.add(true);
+    }
 
-    printHistogram(numbers);
+    for (int i = START; i <= n; i++) {
+        // ignore the number, start with its next multiple and cross the rest off
+        for (int j = 2 * i; j <= n; j += i) {
+            numbers[j] = false;
+        }
+    }
 
-    infile.close();
-    return 0;
+    for (int i = START; i <= n; i++) {
+        if (numbers[i])
+            primes.add(i);
+    }
 }
 
-void readVector(istream & in, Vector<int> & vec) {
-    string line;
-    int val;
+int main() {
+    Vector<int> primes;
 
-    while (getline(in, line)) {
-        std::istringstream stream(line);
-        stream >> val;
-        if (!stream.fail())
-            vec.push_back(val);
+    findPrimes(1000, primes);
+
+    int print_width = int(log10(primes[primes.size() - 1])) + 1;
+
+    cout << "These numbers are primes: " << endl;
+    for (int prime : primes) {
+        cout << right << setw(print_width) << prime << endl;
     }
+
+    return 0;
 }
