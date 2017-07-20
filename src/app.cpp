@@ -1,33 +1,48 @@
 #include "console.h" // "console.h" needs to be included to work with StanfordLib, it otherwise WON'T compile
+#include <iomanip>
 #include <iostream>
 #include <string>
-#include "vector.h"
-#include "queue.h"
-#include "stack.h"
+#include "strlib.h"
 using namespace std;
 
-void reverseQueue(Queue<string> & queue);
+bool checkParenthesis(string & line);
 
 int main() {
-    Queue<string> names;
-    names.enqueue("a");
-    names.enqueue("b");
-    names.enqueue("c");
-    names.enqueue("d");
+    string line_a = "{ s = 2 * (a[2] + 3); x = (1 + (2)); }";
+    string line_incorrect_1 = "(([])";
+    string line_incorrect_2 = ")(";
+    string line_incorrect_3 = "{(})";
 
-    cout << "Names before reversal: " << names.toString() << endl;
-    reverseQueue(names);
-    cout << "Names after reversal: " << names.toString() << endl;
+    cout << right << setw(5) << boolToString(checkParenthesis(line_a)) << " " << line_a << endl;;
+    cout << right << setw(5) << boolToString(checkParenthesis(line_incorrect_1)) << " " << line_incorrect_1 << endl;;
+    cout << right << setw(5) << boolToString(checkParenthesis(line_incorrect_2)) << " " << line_incorrect_2 << endl;;
+    cout << right << setw(5) << boolToString(checkParenthesis(line_incorrect_3)) << " " << line_incorrect_3 << endl;;
 
     return 0;
 }
 
-void reverseQueue(Queue<string> & queue) {
-    Stack<string> stack;
-    while (!queue.isEmpty()) {
-        stack.push(queue.dequeue());
+bool checkParenthesis(string & line) {
+    int parenthesis = 0, curly = 0, bracket = 0;
+    for (int i = 0; i < line.size(); i++) {
+        char ch = line[i];
+        if (ch == '{') {
+            curly++;
+        } else if (ch == '}') {
+            if (bracket != 0 || parenthesis != 0)
+                return false;
+            if (curly-- == 0) return false;
+        } else if (ch == '(') {
+            parenthesis++;
+        } else if (ch == ')') {
+            if (bracket != 0)
+                return false;
+            if (parenthesis-- == 0) return false;
+        } else if (ch == '[') {
+            bracket++;
+        } else if (ch == ']') {
+            if (bracket-- == 0) return false;
+        }
     }
-    while (!stack.isEmpty()) {
-        queue.enqueue(stack.pop());
-    }
+
+    return (parenthesis == 0) && (curly == 0) && (bracket == 0);
 }
