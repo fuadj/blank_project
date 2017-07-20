@@ -2,47 +2,52 @@
 #include <iomanip>
 #include <iostream>
 #include <string>
-#include "strlib.h"
+#include "stack.h"
+#include "queue.h"
 using namespace std;
 
-bool checkParenthesis(string & line);
+void reverseQueue(Queue<char> & queue);
+void roll(Stack<char> & stack, int n, int k);
 
 int main() {
-    string line_a = "{ s = 2 * (a[2] + 3); x = (1 + (2)); }";
-    string line_incorrect_1 = "(([])";
-    string line_incorrect_2 = ")(";
-    string line_incorrect_3 = "{(})";
+    Stack<char> stack_a, stack_b;
+    stack_a.push('A');
+    stack_a.push('B');
+    stack_a.push('C');
+    stack_a.push('D');
 
-    cout << right << setw(5) << boolToString(checkParenthesis(line_a)) << " " << line_a << endl;;
-    cout << right << setw(5) << boolToString(checkParenthesis(line_incorrect_1)) << " " << line_incorrect_1 << endl;;
-    cout << right << setw(5) << boolToString(checkParenthesis(line_incorrect_2)) << " " << line_incorrect_2 << endl;;
-    cout << right << setw(5) << boolToString(checkParenthesis(line_incorrect_3)) << " " << line_incorrect_3 << endl;;
+    stack_b = stack_a;
+
+    cout << "Stack A Before roll " << stack_a.toString() << endl;
+    roll(stack_a, 4, 1);
+    cout << "Stack A After roll " << stack_a.toString() << endl;
+
+    cout << "Stack B Before roll " << stack_b.toString() << endl;
+    roll(stack_b, 3, 2);
+    cout << "Stack B After roll " << stack_b.toString() << endl;
 
     return 0;
 }
 
-bool checkParenthesis(string & line) {
-    int parenthesis = 0, curly = 0, bracket = 0;
-    for (int i = 0; i < line.size(); i++) {
-        char ch = line[i];
-        if (ch == '{') {
-            curly++;
-        } else if (ch == '}') {
-            if (bracket != 0 || parenthesis != 0)
-                return false;
-            if (curly-- == 0) return false;
-        } else if (ch == '(') {
-            parenthesis++;
-        } else if (ch == ')') {
-            if (bracket != 0)
-                return false;
-            if (parenthesis-- == 0) return false;
-        } else if (ch == '[') {
-            bracket++;
-        } else if (ch == ']') {
-            if (bracket-- == 0) return false;
-        }
+void reverseQueue(Queue<char> & queue) {
+    Stack<char> stack;
+    while (!queue.isEmpty()) {
+        stack.push(queue.dequeue());
     }
+    while (!stack.isEmpty()) {
+        queue.enqueue(stack.pop());
+    }
+}
 
-    return (parenthesis == 0) && (curly == 0) && (bracket == 0);
+void roll(Stack<char> & stack, int n, int k) {
+    Queue<char> queue;
+    for (int i = 0; i < n; i++) {
+        queue.enqueue(stack.pop());
+    }
+    for (int i = 0; i < k; i++) {
+        queue.enqueue(queue.dequeue());
+    }
+    reverseQueue(queue);
+    while (!queue.isEmpty())
+        stack.push(queue.dequeue());
 }
