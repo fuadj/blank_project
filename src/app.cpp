@@ -9,58 +9,58 @@ using namespace std;
 
 //const double ARRIVAL_PROBABILITY = 0.05;
 const double ARRIVAL_PROBABILITY = 0.1;
-//const double ARRIVAL_PROBABILITY = 0.1;
 const int MIN_SERVICE_TIME = 5;
 const int MAX_SERVICE_TIME = 15;
 const int SIMULATION_TIME = 2000;
 
-void runSimulation(int nLines, int & nServed, int & totalWait, int & totalLength);
-void printReport(int nLines, int nServed, int totalWait, int totalLength);
+void runSimulation(int nCashiers, int & nServed, int & totalWait, int & totalLength);
+void printReport(int nCashiers, int nServed, int totalWait, int totalLength);
 
 int main() {
     int nServed;
     int totalWait;
     int totalLength;
-    int numLines;
+    Vector<int> cashiers;
+    cashiers += 1, 2, 3, 5, 10, 15, 20, 30, 50, 100;
 
-    numLines = getInteger("How many checkout lines: ");
-    runSimulation(numLines, nServed, totalWait, totalLength);
-    printReport(numLines, nServed, totalWait, totalLength);
+    for (int num_cashier : cashiers) {
+        runSimulation(num_cashier, nServed, totalWait, totalLength);
+        cout << "Simulation with " << num_cashier << endl;
+        printReport(num_cashier, nServed, totalWait, totalLength);
+        cout << endl << endl << endl;
+    }
+
     return 0;
 }
 
-void runSimulation(int nLines, int &nServed, int &totalWait, int &totalLength) {
-    Vector< Queue<int> > lines(nLines);
-    Vector<int> waitingTimes(nLines);
+void runSimulation(int nCashiers, int &nServed, int &totalWait, int &totalLength) {
+    Queue<int> customers;
+    Vector<int> cashiers(nCashiers);
 
     nServed = 0;
     totalWait = 0;
     totalLength = 0;
 
     for (int t = 0; t < SIMULATION_TIME; t++) {
-        for (int i = 0; i < lines.size(); i++) {
-            if (randomChance(ARRIVAL_PROBABILITY)) {
-                lines[i].enqueue(t);
-                break;
-            }
+        if (randomChance(ARRIVAL_PROBABILITY)) {
+            customers.enqueue(t);
         }
 
-        for (int i = 0; i < waitingTimes.size(); i++) {
-            if (waitingTimes[i] > 0) {
-                waitingTimes[i]--;
-            } else {
-                if (!lines[i].isEmpty()) {
-                    totalWait += t - lines[i].dequeue();
-                    nServed++;
-                    waitingTimes[i] = randomInteger(MIN_SERVICE_TIME, MAX_SERVICE_TIME);
-                }
+        for (int i = 0; i < cashiers.size(); i++) {
+            if (cashiers[i] > 0) {
+                cashiers[i]--;
+            } else if (!customers.isEmpty()) {
+                totalWait += t - customers.dequeue();
+                nServed++;
+                cashiers[i] = randomInteger(MIN_SERVICE_TIME, MAX_SERVICE_TIME);
             }
-            totalLength += lines[i].size();
+
+            totalLength += customers.size();
         }
     }
 }
 
-void printReport(int nLines, int nServed, int totalWait, int totalLength) {
+void printReport(int nCashiers, int nServed, int totalWait, int totalLength) {
     cout << "Simulation results given the following constants:" << endl;
     cout << fixed << setprecision(2);
     cout << "  SIMULATION_TIME:     " << setw(4)
@@ -76,5 +76,5 @@ void printReport(int nLines, int nServed, int totalWait, int totalLength) {
     cout << "Average waiting time:  " << setw(7)
          << double(totalWait) / nServed << endl;
     cout << "Average queue length:  " << setw(7)
-         << double(totalLength) / (nLines * SIMULATION_TIME) << endl;
+         << double(totalLength) / (SIMULATION_TIME) << endl;
 }
