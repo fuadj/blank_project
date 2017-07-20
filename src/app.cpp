@@ -41,6 +41,7 @@ void runSimulation(int nLines, int &nServed, int &totalWait, int &totalLength) {
         for (int i = 0; i < lines.size(); i++) {
             if (randomChance(ARRIVAL_PROBABILITY)) {
                 lines[i].enqueue(t);
+                break;
             }
         }
 
