@@ -1,77 +1,108 @@
 #include "console.h" // "console.h" needs to be included to work with StanfordLib, it otherwise WON'T compile
 #include <iostream>
+#include <sstream>
 #include <iomanip>
 #include "vector.h"
 #include "queue.h"
 #include "random.h"
 #include "simpio.h"
 #include "grid.h"
+#include "map.h"
 using namespace std;
 
-const int GRID_SIZE = 25;
+string convertToMorse(const string & line);
+string translateMorse(const string & line);
 
-const int MIN_AIR_TIME = 1;
-const int MAX_AIR_TIME = 4;
-const int NUM_BALLS_SPRUNG = 2;
+Map<char, string> alphaToMorse();
+Map<string, char> morseToAlpha();
 
-void runMouseTrapSimulation(Grid<bool> & grid, int & nTimePassed, int & maxBallsInAir);
-void printMouseTrapReport(Grid<bool> & grid, int nTimePassed, int maxBallsInAir);
+const Map<char, string> ALPHA_TO_MORSE = alphaToMorse();
+const Map<string, char> MORSE_TO_ALPHA = morseToAlpha();
 
 int main() {
-    Grid<bool> grid(GRID_SIZE, GRID_SIZE, true);
-    int nTimePassed;
-    int maxBallsInAir;
+    cout << "Morse code translator" << endl;
 
-    runMouseTrapSimulation(grid, nTimePassed, maxBallsInAir);
-    printMouseTrapReport(grid, nTimePassed, maxBallsInAir);
-
+    while (true) {
+        string line;
+        cout << "> ";
+        getline(cin, line);
+        if (line == "") break;
+        if (isalpha(line[0])) {
+            cout << convertToMorse(line) << endl;
+        } else {
+            cout << translateMorse(line) << endl;
+        }
+    }
     return 0;
 }
 
-void runMouseTrapSimulation(Grid<bool> & grid, int & nTimePassed, int & maxBallsInAir) {
-    Vector<int> ballsInAir;
+string convertToMorse(const string &line) {
+    ostringstream out;
+    for (char ch : line) {
+        out << " " << ALPHA_TO_MORSE[toupper(ch)];
+    }
+    return out.str();
+}
 
-    nTimePassed = 0;
-    maxBallsInAir = 0;
-    ballsInAir.add(0);		// add a single ball to start the reaction
-
-    while (!ballsInAir.isEmpty()) {
-        for (int i = 0; i < ballsInAir.size(); ) {
-            nTimePassed++;
-
-            if (ballsInAir[i] == 0) {
-                ballsInAir.remove(i);		// the ball has landed
-
-                int col = randomInteger(0, grid.numCols() - 1);
-                int row = randomInteger(0, grid.numRows() - 1);
-                if (grid[row][col]) {
-                    grid[row][col] = false;
-
-                    for (int k = 0; k < NUM_BALLS_SPRUNG; k++)
-                        ballsInAir.add(randomInteger(MIN_AIR_TIME, MAX_AIR_TIME));
-
-                    maxBallsInAir = max(maxBallsInAir, ballsInAir.size());
-                }
-            } else {
-                ballsInAir[i]--;
-                i++;
-            }
+string translateMorse(const string &line) {
+    ostringstream out;
+    int start = 0;
+    for (int i = 1; i <= line.size(); i++) {
+        if (i > start &&
+                !MORSE_TO_ALPHA.containsKey(line.substr(start, i - start))) {		// we could also add && MORSE_TO_ALPHA.containsKey(sub_str_1)
+            out << MORSE_TO_ALPHA[line.substr(start, i - (start + 1))];
+            start = i;
         }
     }
 
+    if (start < line.size())
+        out << MORSE_TO_ALPHA[line.substr(start)];
+
+    return out.str();
 }
 
-void printMouseTrapReport(Grid<bool> & grid, int nTimePassed, int maxBallsInAir) {
-    cout << "Simulation results for grid of size [" << grid.numRows() << ", " << grid.numCols() << "]" << endl;
-    int grid_size = grid.numCols() * grid.numRows();
-    int num_exploded = 0;
-    for (bool cell : grid) {
-        if (!cell) num_exploded++;
+Map<char, string> alphaToMorse() {
+    Map<char, string> map;
+    map['A'] = ".-";
+    map['B'] = "-...";
+    map['C'] = "-.-.";
+    map['D'] = "-..";
+    map['E'] = ".";
+    map['F'] = "..-.";
+    map['G'] = "--.";
+
+    map['H'] = "....";
+    map['I'] = "..";
+    map['J'] = ".---";
+    map['K'] = "-.-";
+    map['L'] = ".-..";
+    map['M'] = "--";
+    map['N'] = "-.";
+
+    map['O'] = "---";
+    map['P'] = ".--.";
+    map['Q'] = "--.-";
+    map['R'] = ".-.";
+    map['S'] = "...";
+    map['T'] = "-";
+    map['U'] = "..-";
+
+    map['V'] = "...-";
+    map['W'] = ".--";
+    map['X'] = "-..-";
+    map['Y'] = "-.--";
+    map['Z'] = "--..";
+    map[' '] = " ";
+    return map;
+}
+
+Map<string, char> morseToAlpha() {
+    Map<string, char> morse_to_alpha;
+    Map<char, string> alpha_to_morse = alphaToMorse();
+
+    for (char ch : alpha_to_morse.keys()) {
+        morse_to_alpha[alpha_to_morse[ch]] = ch;
     }
 
-    cout << endl << grid.toString2D() << endl;
-    cout << "Num exploded " << num_exploded << endl;
-    cout << "Percentage survived " << double(grid_size - num_exploded)/grid_size << endl;
-    cout << "Time taken to stabilize " << nTimePassed << endl;
-    cout << "Max # of balls in the air " << maxBallsInAir << endl;
+    return morse_to_alpha;
 }
