@@ -5,76 +5,73 @@
 #include "queue.h"
 #include "random.h"
 #include "simpio.h"
+#include "grid.h"
 using namespace std;
 
-//const double ARRIVAL_PROBABILITY = 0.05;
-const double ARRIVAL_PROBABILITY = 0.1;
-const int MIN_SERVICE_TIME = 5;
-const int MAX_SERVICE_TIME = 15;
-const int SIMULATION_TIME = 2000;
+const int GRID_SIZE = 25;
 
-void runSimulation(int nCashiers, int & nServed, int & totalWait, int & totalLength);
-void printReport(int nCashiers, int nServed, int totalWait, int totalLength);
+const int MIN_AIR_TIME = 1;
+const int MAX_AIR_TIME = 4;
+const int NUM_BALLS_SPRUNG = 2;
+
+void runMouseTrapSimulation(Grid<bool> & grid, int & nTimePassed, int & maxBallsInAir);
+void printMouseTrapReport(Grid<bool> & grid, int nTimePassed, int maxBallsInAir);
 
 int main() {
-    int nServed;
-    int totalWait;
-    int totalLength;
-    Vector<int> cashiers;
-    cashiers += 1, 2, 3, 5, 10, 15, 20, 30, 50, 100;
+    Grid<bool> grid(GRID_SIZE, GRID_SIZE, true);
+    int nTimePassed;
+    int maxBallsInAir;
 
-    for (int num_cashier : cashiers) {
-        runSimulation(num_cashier, nServed, totalWait, totalLength);
-        cout << "Simulation with " << num_cashier << endl;
-        printReport(num_cashier, nServed, totalWait, totalLength);
-        cout << endl << endl << endl;
-    }
+    runMouseTrapSimulation(grid, nTimePassed, maxBallsInAir);
+    printMouseTrapReport(grid, nTimePassed, maxBallsInAir);
 
     return 0;
 }
 
-void runSimulation(int nCashiers, int &nServed, int &totalWait, int &totalLength) {
-    Queue<int> customers;
-    Vector<int> cashiers(nCashiers);
+void runMouseTrapSimulation(Grid<bool> & grid, int & nTimePassed, int & maxBallsInAir) {
+    Vector<int> ballsInAir;
 
-    nServed = 0;
-    totalWait = 0;
-    totalLength = 0;
+    nTimePassed = 0;
+    maxBallsInAir = 0;
+    ballsInAir.add(0);		// add a single ball to start the reaction
 
-    for (int t = 0; t < SIMULATION_TIME; t++) {
-        if (randomChance(ARRIVAL_PROBABILITY)) {
-            customers.enqueue(t);
-        }
+    while (!ballsInAir.isEmpty()) {
+        for (int i = 0; i < ballsInAir.size(); ) {
+            nTimePassed++;
 
-        for (int i = 0; i < cashiers.size(); i++) {
-            if (cashiers[i] > 0) {
-                cashiers[i]--;
-            } else if (!customers.isEmpty()) {
-                totalWait += t - customers.dequeue();
-                nServed++;
-                cashiers[i] = randomInteger(MIN_SERVICE_TIME, MAX_SERVICE_TIME);
+            if (ballsInAir[i] == 0) {
+                ballsInAir.remove(i);		// the ball has landed
+
+                int col = randomInteger(0, grid.numCols() - 1);
+                int row = randomInteger(0, grid.numRows() - 1);
+                if (grid[row][col]) {
+                    grid[row][col] = false;
+
+                    for (int k = 0; k < NUM_BALLS_SPRUNG; k++)
+                        ballsInAir.add(randomInteger(MIN_AIR_TIME, MAX_AIR_TIME));
+
+                    maxBallsInAir = max(maxBallsInAir, ballsInAir.size());
+                }
+            } else {
+                ballsInAir[i]--;
+                i++;
             }
-
-            totalLength += customers.size();
         }
     }
+
 }
 
-void printReport(int nCashiers, int nServed, int totalWait, int totalLength) {
-    cout << "Simulation results given the following constants:" << endl;
-    cout << fixed << setprecision(2);
-    cout << "  SIMULATION_TIME:     " << setw(4)
-         << SIMULATION_TIME << endl;
-    cout << "  ARRIVAL_PROBABILITY: " << setw(7)
-         << ARRIVAL_PROBABILITY << endl;
-    cout << "  MIN_SERVICE_TIME:    " << setw(4)
-         << MIN_SERVICE_TIME << endl;
-    cout << "  MAX_SERVICE_TIME:    " << setw(4)
-         << MAX_SERVICE_TIME << endl;
-    cout << endl;
-    cout << "Customers served:      " << setw(4) << nServed << endl;
-    cout << "Average waiting time:  " << setw(7)
-         << double(totalWait) / nServed << endl;
-    cout << "Average queue length:  " << setw(7)
-         << double(totalLength) / (SIMULATION_TIME) << endl;
+void printMouseTrapReport(Grid<bool> & grid, int nTimePassed, int maxBallsInAir) {
+    cout << "Simulation results for grid of size [" << grid.numRows() << ", " << grid.numCols() << "]" << endl;
+    int grid_size = grid.numCols() * grid.numRows();
+    int num_exploded = 0;
+    for (bool cell : grid) {
+        if (!cell) num_exploded++;
+    }
+
+    cout << endl << grid.toString2D() << endl;
+    cout << "Num exploded " << num_exploded << endl;
+    cout << "Percentage survived " << double(grid_size - num_exploded)/grid_size << endl;
+    cout << "Time taken to stabilize " << nTimePassed << endl;
+    cout << "Max # of balls in the air " << maxBallsInAir << endl;
 }
