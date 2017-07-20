@@ -15,3 +15,5 @@ res/
 !lib/addr2line.exe
 
 !lib/spl.jar
+
+.idea/
