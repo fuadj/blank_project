@@ -1,53 +1,79 @@
 #include "console.h" // "console.h" needs to be included to work with StanfordLib, it otherwise WON'T compile
-#include <iomanip>
 #include <iostream>
-#include <string>
-#include "stack.h"
+#include <iomanip>
+#include "vector.h"
 #include "queue.h"
+#include "random.h"
+#include "simpio.h"
 using namespace std;
 
-void reverseQueue(Queue<char> & queue);
-void roll(Stack<char> & stack, int n, int k);
+//const double ARRIVAL_PROBABILITY = 0.05;
+const double ARRIVAL_PROBABILITY = 0.1;
+//const double ARRIVAL_PROBABILITY = 0.1;
+const int MIN_SERVICE_TIME = 5;
+const int MAX_SERVICE_TIME = 15;
+const int SIMULATION_TIME = 2000;
+
+void runSimulation(int nLines, int & nServed, int & totalWait, int & totalLength);
+void printReport(int nLines, int nServed, int totalWait, int totalLength);
 
 int main() {
-    Stack<char> stack_a, stack_b;
-    stack_a.push('A');
-    stack_a.push('B');
-    stack_a.push('C');
-    stack_a.push('D');
+    int nServed;
+    int totalWait;
+    int totalLength;
+    int numLines;
 
-    stack_b = stack_a;
-
-    cout << "Stack A Before roll " << stack_a.toString() << endl;
-    roll(stack_a, 4, 1);
-    cout << "Stack A After roll " << stack_a.toString() << endl;
-
-    cout << "Stack B Before roll " << stack_b.toString() << endl;
-    roll(stack_b, 3, 2);
-    cout << "Stack B After roll " << stack_b.toString() << endl;
-
+    numLines = getInteger("How many checkout lines: ");
+    runSimulation(numLines, nServed, totalWait, totalLength);
+    printReport(numLines, nServed, totalWait, totalLength);
     return 0;
 }
 
-void reverseQueue(Queue<char> & queue) {
-    Stack<char> stack;
-    while (!queue.isEmpty()) {
-        stack.push(queue.dequeue());
-    }
-    while (!stack.isEmpty()) {
-        queue.enqueue(stack.pop());
+void runSimulation(int nLines, int &nServed, int &totalWait, int &totalLength) {
+    Vector< Queue<int> > lines(nLines);
+    Vector<int> waitingTimes(nLines);
+
+    nServed = 0;
+    totalWait = 0;
+    totalLength = 0;
+
+    for (int t = 0; t < SIMULATION_TIME; t++) {
+        for (int i = 0; i < lines.size(); i++) {
+            if (randomChance(ARRIVAL_PROBABILITY)) {
+                lines[i].enqueue(t);
+            }
+        }
+
+        for (int i = 0; i < waitingTimes.size(); i++) {
+            if (waitingTimes[i] > 0) {
+                waitingTimes[i]--;
+            } else {
+                if (!lines[i].isEmpty()) {
+                    totalWait += t - lines[i].dequeue();
+                    nServed++;
+                    waitingTimes[i] = randomInteger(MIN_SERVICE_TIME, MAX_SERVICE_TIME);
+                }
+            }
+            totalLength += lines[i].size();
+        }
     }
 }
 
-void roll(Stack<char> & stack, int n, int k) {
-    Queue<char> queue;
-    for (int i = 0; i < n; i++) {
-        queue.enqueue(stack.pop());
-    }
-    for (int i = 0; i < k; i++) {
-        queue.enqueue(queue.dequeue());
-    }
-    reverseQueue(queue);
-    while (!queue.isEmpty())
-        stack.push(queue.dequeue());
+void printReport(int nLines, int nServed, int totalWait, int totalLength) {
+    cout << "Simulation results given the following constants:" << endl;
+    cout << fixed << setprecision(2);
+    cout << "  SIMULATION_TIME:     " << setw(4)
+         << SIMULATION_TIME << endl;
+    cout << "  ARRIVAL_PROBABILITY: " << setw(7)
+         << ARRIVAL_PROBABILITY << endl;
+    cout << "  MIN_SERVICE_TIME:    " << setw(4)
+         << MIN_SERVICE_TIME << endl;
+    cout << "  MAX_SERVICE_TIME:    " << setw(4)
+         << MAX_SERVICE_TIME << endl;
+    cout << endl;
+    cout << "Customers served:      " << setw(4) << nServed << endl;
+    cout << "Average waiting time:  " << setw(7)
+         << double(totalWait) / nServed << endl;
+    cout << "Average queue length:  " << setw(7)
+         << double(totalLength) / (nLines * SIMULATION_TIME) << endl;
 }
