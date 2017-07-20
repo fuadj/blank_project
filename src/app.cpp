@@ -3,23 +3,38 @@
 #include <string>
 #include "vector.h"
 #include "grid.h"
+#include "math.h"
 using namespace std;
 
-void fillGrid(Grid<int> & grid, Vector<int> & values);
-bool isMagicSquare(Grid<int> & matrix);
+void fillGrid(Grid<bool> & grid, Vector<bool> & values);
+
+void fixCounts(Grid<bool> & locations, Grid<int> & counts);
+
+#define T true
+#define F false
 
 int main() {
-    Grid<int> matrix(3, 3);
-    Vector<int> values;
-    values += 1, 2, 3;
-    values += 4, 5, 6;
-    values += 7, 8, 9;
-    fillGrid(matrix, values);
-    cout << "The matrix is " << (isMagicSquare(matrix) ? "Magic" : "Imagic") << endl;
+    Grid<int> counts;
+    Grid<bool> mine(6, 6);
+    Vector<bool> row_mines;
+
+    row_mines += T, F, F, F, F, T;
+    row_mines += F, F, F, F, F, T;
+    row_mines += T, T, F, T, F, T;
+    row_mines += T, F, F, F, F, F;
+    row_mines += F, F, T, F, F, F;
+    row_mines += F, F, F, F, F, F;
+
+    fillGrid(mine, row_mines);
+    fixCounts(mine, counts);
+
+    cout << "The Mine: " << endl << mine.toString2D() << endl;
+    cout << "Counted Mine: " << endl << counts.toString2D() << endl;
+
     return 0;
 }
 
-void fillGrid(Grid<int> & grid, Vector<int> & values) {
+void fillGrid(Grid<bool> & grid, Vector<bool> & values) {
     int filled = 0;
     for (int row = 0; row < grid.numRows(); row++) {
         for (int col = 0; col < grid.numCols(); col++) {
@@ -31,32 +46,24 @@ void fillGrid(Grid<int> & grid, Vector<int> & values) {
     }
 }
 
-bool isMagicSquare(Grid<int> & matrix) {
-    if (matrix.isEmpty() || (matrix.numCols() != matrix.numRows()))
-        return false;
+void fixCounts(Grid<bool> & locations, Grid<int> & counts) {
+    counts.resize(locations.numRows(), locations.numCols());
 
-    bool did_sum = false;
-    int prev_sum = 0;
-    for (int row = 0; row < matrix.numRows(); row++) {
-        int col_sum = 0;
-        int row_sum = 0;
-        for (int col = 0; col < matrix.numCols(); col++) {
-            col_sum += matrix[row][col];
-            row_sum += matrix[col][row];
+    int NUM_ROWS = locations.numRows();
+    int NUM_COLS = locations.numCols();
+
+    for (int row = 0; row < NUM_ROWS; row++) {
+        for (int col = 0; col < NUM_COLS; col++) {
+            int start_row = max(0, row - 1), end_row = min(NUM_ROWS - 1, row + 1);
+            int start_col = max(0, col - 1), end_col = min(NUM_COLS - 1, col + 1);
+
+            int cell_count = 0;
+            for (int i = start_row; i <= end_row; i++) {
+                for (int k = start_col; k <= end_col; k++) {
+                    cell_count += (locations[i][k] ? 1 : 0);
+                }
+            }
+            counts[row][col] = cell_count;
         }
-        if (col_sum != row_sum || (did_sum && prev_sum != col_sum))
-            return false;
-        did_sum = true;
-        prev_sum = col_sum;
     }
-
-    int diagonal_sum = 0;
-    int inverse_diagonal_sum = 0;
-    for (int i = 0; i < matrix.numRows(); i++) {
-        diagonal_sum += matrix[i][i];
-        inverse_diagonal_sum += matrix[matrix.numRows() - (i+1)][i];
-    }
-    if (diagonal_sum != inverse_diagonal_sum || (diagonal_sum != prev_sum))
-        return false;
-    return true;
 }
