@@ -1,16 +1,16 @@
 #include <iostream>
 #include "console.h" // This NEEDS to be included, it WON'T compile otherwise
 #include <iomanip>
-#include "domino.h"
+#include "card.h"
 
 using namespace std;
 
 int main() {
-    for (int left = 1; left <= 6; left++) {
-        for (int right = 1; right <= 6; right++) {
-            Domino domino(left, right);
-            cout << domino << endl;
+    for (Suit suit = CLUBS; suit <= SPADES; suit++) {
+        for (int rank = ACE; rank <= KING; rank++) {
+            cout << " " << Card(rank, suit);
         }
+        cout << endl;
     }
     return 0;
 }
