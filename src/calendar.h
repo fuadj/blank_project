@@ -6,7 +6,11 @@
 #include "map.h"
 
 /*
- * We couldn't use enums b/c they screw-up ++ and -- operations in implementaion
+ * We couldn't use enums b/c aren't actually ordered numerically AND
+ * they don't wrap around(i.e: DECEMBER <-> JANUARY).
+ *
+ * See: https://stackoverflow.com/a/15451002/5753416
+ *
 enum Month {
     JANUARY,
     FEBRUARY,
