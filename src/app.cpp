@@ -6,40 +6,65 @@
 
 using namespace std;
 
-double getTitiusBodeDistance(int n);
+int countFib1(int n);
+int countFib2(int n);
 
 int main() {
-    Map<int, string> planetName;
-    planetName.put(1, "Mercury");
-    planetName.put(2, "Venus");
-    planetName.put(3, "Earth");
-    planetName.put(4, "Mars");
-    planetName.put(5, "?");
-    planetName.put(6, "Jupiter");
-    planetName.put(7, "Saturn");
-    planetName.put(8, "Uranus");
+    cout << "This program counts the number of calls made by the two" << endl;
+    cout << "algorithms used to compute the Fibonacci sequence." << endl;
 
-    int longest_planet_name = 0;
-    for (int planet : planetName) {
-        if (planetName[planet].length() > longest_planet_name)
-            longest_planet_name = planetName[planet].length();
-    }
+    int W_N = 4, W_F_1 = 11, W_F_2 = 7;
 
-    for (int i = 1; i <= 8; i++) {
-        cout << left << setw(longest_planet_name) << planetName[i];
-        cout << "\t" << right << setw(3) << setprecision(3) << getTitiusBodeDistance(i);
+    cout << right << setw(W_N) << "n" << setw(W_F_1) << "fib1" << setw(W_F_2) << "fib2" << endl;
+    cout << right << setw(W_N) << "--" << setw(W_F_1) << "----" << setw(W_F_2) << "----" << endl;
+
+    for (int n = 0; n <= 33; n++) {
+        cout << right << setw(W_N) << n;
+        cout << right << setw(W_F_1) << countFib1(n);
+        cout << right << setw(W_F_2) << countFib2(n);
         cout << endl;
     }
     return 0;
 }
 
-int getPlanetSequence(int n) {
-    if (n == 1) return 1;
-    if (n == 2) return 3;
-
-    return 2 * getPlanetSequence(n - 1);
+int countFib1(int n) {
+    if (n < 2) {
+        return 1;
+    } else {
+        return 1 + countFib1(n - 1) + countFib1(n - 2);
+    }
 }
 
-double getTitiusBodeDistance(int n) {
-    return double(4 + getPlanetSequence(n)) / 10;
+int additiveSequence2(int n, int t0, int t1, int & callCounter) {
+    callCounter++;
+    if (n == 0) return t0;
+    if (n == 1) return t1;
+    return additiveSequence2(n - 1, t1, t0 + t1, callCounter);
+}
+
+int countFib2(int n) {
+    int callCounter = 1;		// it starts at 1 b/c this is also a 'wrapper' func call
+    additiveSequence2(n, 0, 1, callCounter);
+    return callCounter;
+}
+
+/**
+ * The 2 Fibonacci Implementations
+ */
+int fib1(int n) {
+    if (n < 2) {
+        return n;
+    } else {
+        return fib1(n - 1) + fib1(n - 2);
+    }
+}
+
+int additiveSequence(int n, int t0, int t1) {
+    if (n == 0) return t0;
+    if (n == 1) return t1;
+    return additiveSequence(n - 1, t1, t0 + t1);
+}
+
+int fib2(int n) {
+    return additiveSequence(n, 0, 1);
 }
