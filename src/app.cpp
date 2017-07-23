@@ -1,58 +1,58 @@
 #include <iostream>
 #include "console.h" // This NEEDS to be included, it WON'T compile otherwise
 #include <string>
-#include "vector.h"
+#include "set.h"
+#include "strlib.h"
+#include "error.h"
 
 using namespace std;
 
-struct Move {
-    char src, dest;
-    int level;
-
-    Move(){}
-    Move(char s, char d, int l): src(s), dest(d), level(l) {}
-};
-
-void towersOfHannoi(int n, char source, char dest, char temp, Vector<Move> & moves);
-
-ostream& printTower(const Vector<int> & tower, const string & delim) {
-    for (int l : tower) cout << l << delim;
-    return cout;
-}
-
-const int TOWER_HEIGHT = 8;
+bool subSetSum(Set<int> & nums, int target);
+bool subsetSumExists(Set<int> & set, int target);
 
 int main() {
-    char SOURCE = 'A';
-    char DEST = 'B';
-    char TEMP = 'C';
+    Set<int> nums;
+    nums.add(-2);
+    nums.add(1);
+    nums.add(8);
+    nums.add(7);
+    nums.add(13);
+    nums.add(18);
 
-    Vector<Move> moves;
-    Vector<int> destTower;
-
-    towersOfHannoi(TOWER_HEIGHT, SOURCE, DEST, TEMP, moves);
-
-    for (Move move : moves) {
-        if (move.dest == DEST) {
-            destTower.push_back(move.level);
-
-            printTower(destTower, "  ") << endl;
-        } else if (move.src == DEST) {
-            destTower.remove(destTower.size() - 1);
-
-            printTower(destTower, "  ") << (destTower.isEmpty() ? "||" : "<=") << endl;
-        }
+    for (int i = 0; i < 30; i++) {
+        if (subSetSum(nums, i) != subsetSumExists(nums, i))
+            error("" + integerToString(i) + "th sum don't match");
     }
+
+    cout << "Comparision Done!!!" << endl;
 
     return 0;
 }
 
-void towersOfHannoi(int n, char source, char dest, char temp, Vector<Move> & moves) {
-    if (n == 1) {
-        moves.push_back(Move{source, dest, n});
+bool subSetSum(Set<int> & nums, int target) {
+    if (nums.isEmpty()) return target == 0;
+
+    int sum = 0;
+    for (int n : nums) {
+        sum += n;
+    }
+    if (sum == target) return true;
+
+    for (int n : nums) {
+        Set<int> rest = nums - n;
+        if (subSetSum(rest, target))
+            return true;
+    }
+    return false;
+}
+
+bool subsetSumExists(Set<int> & set, int target) {
+    if (set.isEmpty()) {
+        return target == 0;
     } else {
-        towersOfHannoi(n-1, source, temp, dest, moves);
-        moves.push_back(Move{source, dest, n});
-        towersOfHannoi(n-1, temp, dest, source, moves);
+        int element = set.first();
+        Set<int> rest = set - element;
+        return subsetSumExists(rest, target)
+                || subsetSumExists(rest, target - element);
     }
 }
