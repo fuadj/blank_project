@@ -6,26 +6,29 @@
 
 using namespace std;
 
-int digitSum(int n);
-int digitRoot(int n);
+int combination(int n, int k);
+
+const int HALF_SPACE = 3;
+const int SPACE_WIDTH = 2 * HALF_SPACE; 	// it is defined interms of HALF_SPACE * 2 so it is always even
+const int LEFT_OFFSET = 3;
 
 int main() {
-    int num = 999999997;
+    int n = 11;
 
-    cout << "The digit root of " << num << " is " << digitRoot(num) << endl;
+    for (int i = 0; i <= n; i++) {
+        cout << setw(LEFT_OFFSET + (n - i) * HALF_SPACE);
+        for (int k = 0; k <= i; k++) {
+            cout << combination(i, k);
+            cout << setw(SPACE_WIDTH);
+        }
+        cout << endl;
+    }
+
     return 0;
 }
 
-int digitSum(int n) {
-    if (n < 10) return n;
-
-    int ones = n - (n / 10) * 10;
-    return ones + digitSum(n / 10);
-}
-
-int digitRoot(int n) {
-    int sum = digitSum(n);
-    if (sum < 10) return sum;
-
-    return digitRoot(sum);
+int combination(int n, int k) {
+    if ((n < 2) || (k == 0) || (k == n))
+        return 1;
+    return combination(n-1, k) + combination(n-1, k-1);
 }
