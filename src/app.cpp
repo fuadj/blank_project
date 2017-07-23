@@ -1,35 +1,45 @@
 #include <iostream>
 #include "console.h" // This NEEDS to be included, it WON'T compile otherwise
+#include "map.h"
+#include <string>
+#include <iomanip>
 
 using namespace std;
 
-int cannonBall(int height);
+double getTitiusBodeDistance(int n);
 
 int main() {
-    for (int i = 1; i <= 4; i++) {
-        cout << "Cannon Height " << i << " total balls " << cannonBall(i) << endl;
+    Map<int, string> planetName;
+    planetName.put(1, "Mercury");
+    planetName.put(2, "Venus");
+    planetName.put(3, "Earth");
+    planetName.put(4, "Mars");
+    planetName.put(5, "?");
+    planetName.put(6, "Jupiter");
+    planetName.put(7, "Saturn");
+    planetName.put(8, "Uranus");
+
+    int longest_planet_name = 0;
+    for (int planet : planetName) {
+        if (planetName[planet].length() > longest_planet_name)
+            longest_planet_name = planetName[planet].length();
+    }
+
+    for (int i = 1; i <= 8; i++) {
+        cout << left << setw(longest_planet_name) << planetName[i];
+        cout << "\t" << right << setw(3) << setprecision(3) << getTitiusBodeDistance(i);
+        cout << endl;
     }
     return 0;
 }
 
-int cannonBallLevels(int height, int & ballCount) {
-    if (height <= 1)  {
-        ballCount++;
-        return 1;
-    }
+int getPlanetSequence(int n) {
+    if (n == 1) return 1;
+    if (n == 2) return 3;
 
-    int upperLevel = cannonBallLevels(height - 1, ballCount);
-
-    int currentLevel = upperLevel + (2 * height - 1);
-    ballCount += currentLevel;
-
-    return currentLevel;
+    return 2 * getPlanetSequence(n - 1);
 }
 
-int cannonBall(int height) {
-    int ballCount = 0;
-
-    cannonBallLevels(height, ballCount);
-
-    return ballCount;
+double getTitiusBodeDistance(int n) {
+    return double(4 + getPlanetSequence(n)) / 10;
 }
