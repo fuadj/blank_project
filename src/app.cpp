@@ -5,9 +5,11 @@
 using namespace std;
 
 int countSubsetSumWays(const Set<int> & set, int target);
+int countSubsetSumWays2(const Set<int> & set, int target);
 
 void printWays(const Set<int> & set, int n) {
-    cout << "Searching for " << n << " " << countSubsetSumWays(set, n) << endl;
+    cout << "Func1: Searching for " << n << " " << countSubsetSumWays(set, n) << "ways" << endl;
+    cout << "Func2: Searching for " << n << " " << countSubsetSumWays2(set, n) << "ways" << endl;
 }
 
 int main() {
@@ -34,4 +36,15 @@ int countSubsetSumWays(const Set<int> & set, int target) {
     int matchCount = 0;
     countSubsetSumWaysRecurse(set, target, matchCount);
     return matchCount;
+}
+
+int countSubsetSumWays2(const Set<int> & set, int target) {
+    if (set.isEmpty()) {
+        return target == 0 ? 1 : 0;
+    } else {
+        int element = set.first();
+        Set<int> rest = set - element;
+        return countSubsetSumWays2(rest, target) +
+                countSubsetSumWays2(rest, target - element);
+    }
 }
