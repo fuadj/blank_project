@@ -2,57 +2,56 @@
 #include "console.h" // This NEEDS to be included, it WON'T compile otherwise
 #include <string>
 #include "set.h"
-#include "strlib.h"
-#include "error.h"
+#include "simpio.h"
 
 using namespace std;
 
-bool subSetSum(Set<int> & nums, int target);
-bool subsetSumExists(Set<int> & set, int target);
+Set<string> generatePermutations(const string & s);
+Set<string> generatePermutationsBook(string s);
 
 int main() {
-    Set<int> nums;
-    nums.add(-2);
-    nums.add(1);
-    nums.add(8);
-    nums.add(7);
-    nums.add(13);
-    nums.add(18);
-
-    for (int i = 0; i < 30; i++) {
-        if (subSetSum(nums, i) != subsetSumExists(nums, i))
-            error("" + integerToString(i) + "th sum don't match");
+    string str = getLine("Enter a string: ");
+    cout << "The permutations of \"" << str << "\" are:" << endl;
+    for (string s : generatePermutationsBook(str)) {
+        cout << "   \"" << s << "\"" << endl;
     }
-
-    cout << "Comparision Done!!!" << endl;
 
     return 0;
 }
 
-bool subSetSum(Set<int> & nums, int target) {
-    if (nums.isEmpty()) return target == 0;
-
-    int sum = 0;
-    for (int n : nums) {
-        sum += n;
+void generatePermutationsRecursive(const string & sofar, const Set<char> & chars, Set<string> & permutations) {
+    if (chars.isEmpty()) {
+        permutations.add(sofar);
+    } else {
+        for (char ch : chars) {
+            generatePermutationsRecursive(sofar + ch, chars - ch, permutations);
+        }
     }
-    if (sum == target) return true;
-
-    for (int n : nums) {
-        Set<int> rest = nums - n;
-        if (subSetSum(rest, target))
-            return true;
-    }
-    return false;
 }
 
-bool subsetSumExists(Set<int> & set, int target) {
-    if (set.isEmpty()) {
-        return target == 0;
-    } else {
-        int element = set.first();
-        Set<int> rest = set - element;
-        return subsetSumExists(rest, target)
-                || subsetSumExists(rest, target - element);
+Set<string> generatePermutations(const string & s) {
+    Set<char> chars;
+    Set<string> permutations;
+    for (char ch : s) {
+        chars.add(ch);
     }
+    generatePermutationsRecursive("", chars, permutations);
+    return permutations;
+}
+
+Set<string> generatePermutationsBook(string str) {
+    Set<string> result;
+    if (str == "") {
+        result += "";
+    } else {
+        for (int i = 0; i < str.length(); i++) {
+            char ch = str[i];
+            string rest = str.substr(0, i) + str.substr(i+1);
+            for (string s : generatePermutationsBook(rest)) {
+                result += ch + s;
+            }
+        }
+    }
+
+    return result;
 }
