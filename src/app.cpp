@@ -1,39 +1,37 @@
 #include <iostream>
 #include "console.h" // This NEEDS to be included, it WON'T compile otherwise
-#include "stack.h"
+#include "set.h"
 
 using namespace std;
 
-struct Move {
-    int numPlates;
-    char source, dest, temp;
+int countSubsetSumWays(const Set<int> & set, int target);
 
-    Move(){}
-    Move(int n, char s, char d, char t): numPlates(n), source(s), dest(d), temp(t) {}
-};
-
-void moveTowersOfHanoiWithStack(int n, char source, char dest, char temp);
+void printWays(const Set<int> & set, int n) {
+    cout << "Searching for " << n << " " << countSubsetSumWays(set, n) << endl;
+}
 
 int main() {
-    moveTowersOfHanoiWithStack(3, 'A', 'B', 'C');
+    Set<int> sampleSet;
+    sampleSet += 1, 3, 4, 5;
+    printWays(sampleSet, 5);
+    printWays(sampleSet, 11);
     return 0;
 }
 
-void moveTowersOfHanoiWithStack(int n, char source, char dest, char temp) {
-    Stack<Move> moves;
-
-    moves.push(Move(n, source, dest, temp));
-    while (!moves.isEmpty()) {
-        Move move = moves.pop();
-        if (move.numPlates == 1)
-            cout << move.source << " => " << move.dest << endl;
-        else if (move.numPlates > 1) {
-            moves.push(Move(move.numPlates - 1,
-                            move.temp, move.dest, move.source));
-            moves.push(Move(1,
-                            move.source, move.dest, move.temp));	// move the last plate
-            moves.push(Move(move.numPlates - 1,
-                            move.source, move.temp, move.dest));
-        }
+void countSubsetSumWaysRecurse(const Set<int> & set, int target, int & matchCount) {
+    if (set.isEmpty()) {
+        bool is_match = target == 0;
+        matchCount += is_match ? 1 : 0;
+    } else {
+        int element = set.first();
+        Set<int> rest = set - element;
+        countSubsetSumWaysRecurse(rest, target, matchCount);
+        countSubsetSumWaysRecurse(rest, target - element, matchCount);
     }
+}
+
+int countSubsetSumWays(const Set<int> & set, int target) {
+    int matchCount = 0;
+    countSubsetSumWaysRecurse(set, target, matchCount);
+    return matchCount;
 }
