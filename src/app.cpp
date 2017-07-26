@@ -3,33 +3,49 @@
 #include "console.h"
 #include "set.h"
 #include "simpio.h"
+#include "time.h"
+#include "stack.h"
 
 using namespace std;
 
-Set<string> generatePermutations(string s);
+void listPermutations(string str);
 
 int main() {
     string str = getLine("Enter a string: ");
-    cout << "The permutations of \"" << str << "\" are:" << endl;
-    for (string s : generatePermutations(str)) {
-        cout << "  \"" << s << "\"" << endl;
-    }
+    listPermutations(str);
+
     return 0;
 }
 
-Set<string> generatePermutations(string s) {
-    Set<string> result;
-    if (s == "") {
-        result += "";
-    } else {
-        char ch = s[0];
-        string rest = s.substr(1);
-        for (string sub : generatePermutations(rest)) {
-            for (int i = 0; i < sub.length(); i++) {
-                result += sub.substr(0, i) + ch + sub.substr(i);
-            }
-            result += sub + ch;
-        }
+void swapChars(string & str, int i, int k) {
+    char temp = str[i];
+    str[i] = str[k];
+    str[k] = temp;
+}
+
+void listPermutationsRecursive(string & str, int index) {
+    if (index == (str.size() - 1)) {
+        cout << str << endl;
+        return;
     }
-    return result;
+    for (int i = index; i < str.size(); i++) {
+        bool duplicate = false;
+        for (int k = i - 1; k >= index; k--) {
+            if (str[i] == str[k]) {
+                duplicate = true;
+                break;
+            }
+        }
+        if (duplicate) continue;
+
+        swapChars(str, i, index);
+
+        listPermutationsRecursive(str, index + 1);
+
+        swapChars(str, i, index);
+    }
+}
+
+void listPermutations(string str) {
+    listPermutationsRecursive(str, 0);
 }
