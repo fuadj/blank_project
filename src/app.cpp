@@ -1,74 +1,33 @@
-#include <iostream>
 #include <string>
-#include "console.h"
-#include "simpio.h"
-#include "vector.h"
-#include "map.h"
-#include "lexicon.h"
-#include <iomanip>
+#include "gwindow.h"
+#include <cmath>
 
 using namespace std;
 
-void listCompletions(const string & number, int index = 0, string result = "");
+const int INCH_WIDTH = 320;
+const int INCH_HEIGHT = 80;
 
-Map<int, Vector<char> > KEY_MAPPING;
-Lexicon * lexicon;
-int countFindingKeyCombinations;
-int countFindingWords;
+const int NUM_LEVELS = 4;
 
-void addMapping(int key, const string & number) {
-    for (char ch : number) {
-        KEY_MAPPING[key].push_back(ch);
-    }
-}
+void drawMarker(GWindow & gw, int x, int y, int sideSpan, int level = 0);
 
 int main() {
-    lexicon = new Lexicon("EnglishWords.dat");
-    countFindingKeyCombinations = 0;
-    countFindingWords = 0;
+    GWindow gw;
+    int center_x = gw.getWidth() / 2;
+    int center_y = int(double(gw.getHeight()) * 0.8);
+    gw.setColor("black");
 
-    addMapping(0, " ");
-    addMapping(1, " ");
-    addMapping(2, "abc");
-    addMapping(3, "def");
-    addMapping(4, "ghi");
-    addMapping(5, "jkl");
-    addMapping(6, "mno");
-    addMapping(7, "pqrs");
-    addMapping(8, "tuv");
-    addMapping(9, "wxyz");
+    gw.drawLine(center_x - (INCH_WIDTH / 2), center_y, center_x + (INCH_WIDTH / 2), center_y);
 
-    string number = getLine("Enter number to call: ");
-
-    listCompletions(number);
-
-    int totalCall = (countFindingKeyCombinations + countFindingWords);
-    cout << "Total # of recursive calls " << totalCall << endl;
-    cout << "% of calls finding words " << setprecision(4) << (double(countFindingWords) * 100.0 / totalCall) << "%" << endl;
-
-    delete lexicon;
-
+    drawMarker(gw, center_x, center_y, INCH_WIDTH/2);
     return 0;
 }
 
-void findCompletions(string str) {
-    countFindingWords++;
-    if (!lexicon->containsPrefix(str)) return;
-    if (lexicon->contains(str))
-        cout << str << endl;
-    for (char ch = 'a'; ch <= 'z'; ch++) {
-        findCompletions(str + ch);
-    }
-}
-
-void listCompletions(const string & number, int index, string result) {
-    countFindingKeyCombinations++;
-    if (index == number.length()) {
-        findCompletions(result);
-        return;
-    }
-    int index_val = int(number[index] - '0');
-    for (int i = 0; i < KEY_MAPPING[index_val].size(); i++) {
-        listCompletions(number, index + 1, result + KEY_MAPPING[index_val][i]);
+void drawMarker(GWindow & gw, int x, int y, int sideSpan, int level) {
+    if (level < NUM_LEVELS) {
+        double tick_height = INCH_HEIGHT / pow(2, level);
+        gw.drawLine(x, y - tick_height, x, y);
+        drawMarker(gw, x - sideSpan/2, y, sideSpan/2, level+1);
+        drawMarker(gw, x + sideSpan/2, y, sideSpan/2, level+1);
     }
 }
