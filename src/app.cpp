@@ -4,12 +4,14 @@
 #include "simpio.h"
 #include "vector.h"
 #include "map.h"
+#include "lexicon.h"
 
 using namespace std;
 
 void listMnemonics(const string & number, int index = 0, string result = "");
 
 Map<int, Vector<char> > KEY_MAPPING;
+Lexicon * lexicon;
 
 void addMapping(int key, const string & number) {
     for (char ch : number) {
@@ -18,6 +20,8 @@ void addMapping(int key, const string & number) {
 }
 
 int main() {
+    lexicon = new Lexicon("EnglishWords.dat");
+
     addMapping(0, " ");
     addMapping(1, " ");
     addMapping(2, "ABC");
@@ -33,12 +37,15 @@ int main() {
 
     listMnemonics(number);
 
+    delete lexicon;
+
     return 0;
 }
 
 void listMnemonics(const string & number, int index, string result) {
     if (index == number.length()) {
-        cout << result << endl;
+        if (lexicon->contains(result))
+            cout << result << endl;
         return;
     }
     int index_val = int(number[index] - '0');
