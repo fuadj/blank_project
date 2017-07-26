@@ -6,34 +6,27 @@
 
 using namespace std;
 
-const int LEVEL_LIMIT = 8;
-
-GPoint drawCoastLine(GWindow & gw, GPoint pt, double length, double theta, int level = 0);
+void drawHFractal(GWindow & gw, double x, double y, double size, int order);
 
 int main() {
     GWindow gw;
-    int start_x = int(double(gw.getWidth()) * 0.1);
-    int end_x = int(double(gw.getWidth()) * 0.9);
-    int y = gw.getHeight()/2;
-
-    drawCoastLine(gw, GPoint(start_x, y), end_x - start_x, 0);
-
+    double xc = gw.getWidth() / 2;
+    double yc = gw.getHeight() / 2;
+    drawHFractal(gw, xc, yc, 100, 3);
     return 0;
 }
 
-GPoint drawCoastLine(GWindow & gw, GPoint pt, double length, double theta, int level) {
-    if (level == LEVEL_LIMIT) {
-        return gw.drawPolarLine(pt, length, theta);
-    }
+void drawHFractal(GWindow & gw, double x, double y, double size, int order) {
+    if (order < 0)
+        return;
 
-    pt = drawCoastLine(gw, pt, length/3, theta, level+1);
-    if (randomChance(0.5)) {
-        pt = drawCoastLine(gw, pt, length/3, theta+60, level+1);
-        pt = drawCoastLine(gw, pt, length/3, theta-60, level+1);
-    } else {
-        pt = drawCoastLine(gw, pt, length/3, theta-60, level+1);
-        pt = drawCoastLine(gw, pt, length/3, theta+60, level+1);
-    }
-
-    return drawCoastLine(gw, pt, length/3, theta, level+1);
+    double x_left = x-size/2, x_right = x+size/2;
+    double y_top = y-size/2, y_bottom = y+size/2;
+    gw.drawLine(x_left, y, x_right, y);
+    gw.drawLine(x_left, y_top, x_left, y_bottom);
+    gw.drawLine(x_right, y_top, x_right, y_bottom);
+    drawHFractal(gw, x_left, y_top, size/2, order-1);
+    drawHFractal(gw, x_right, y_top, size/2, order-1);
+    drawHFractal(gw, x_left, y_bottom, size/2, order-1);
+    drawHFractal(gw, x_right, y_bottom, size/2, order-1);
 }
