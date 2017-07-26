@@ -22,12 +22,13 @@ Set<string> generatePermutations(string s) {
     if (s == "") {
         result += "";
     } else {
-        for (int i = 0; i < s.length(); i++) {
-            char ch = s[0];
-            string rest = s.substr(0, i) + s.substr(i + 1);
-            for (string sub : generatePermutations(rest)) {
-                result += ch + sub;
+        char ch = s[0];
+        string rest = s.substr(1);
+        for (string sub : generatePermutations(rest)) {
+            for (int i = 0; i < sub.length(); i++) {
+                result += sub.substr(0, i) + ch + sub.substr(i);
             }
+            result += sub + ch;
         }
     }
     return result;
