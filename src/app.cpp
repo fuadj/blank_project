@@ -5,13 +5,16 @@
 #include "vector.h"
 #include "map.h"
 #include "lexicon.h"
+#include <iomanip>
 
 using namespace std;
 
-void listMnemonics(const string & number, int index = 0, string result = "");
+void listCompletions(const string & number, int index = 0, string result = "");
 
 Map<int, Vector<char> > KEY_MAPPING;
 Lexicon * lexicon;
+int countFindingKeyCombinations;
+int countFindingWords;
 
 void addMapping(int key, const string & number) {
     for (char ch : number) {
@@ -21,35 +24,51 @@ void addMapping(int key, const string & number) {
 
 int main() {
     lexicon = new Lexicon("EnglishWords.dat");
+    countFindingKeyCombinations = 0;
+    countFindingWords = 0;
 
     addMapping(0, " ");
     addMapping(1, " ");
-    addMapping(2, "ABC");
-    addMapping(3, "DEF");
-    addMapping(4, "GHI");
-    addMapping(5, "JKL");
-    addMapping(6, "MNO");
-    addMapping(7, "PQRS");
-    addMapping(8, "TUV");
-    addMapping(9, "WXYZ");
+    addMapping(2, "abc");
+    addMapping(3, "def");
+    addMapping(4, "ghi");
+    addMapping(5, "jkl");
+    addMapping(6, "mno");
+    addMapping(7, "pqrs");
+    addMapping(8, "tuv");
+    addMapping(9, "wxyz");
 
     string number = getLine("Enter number to call: ");
 
-    listMnemonics(number);
+    listCompletions(number);
+
+    int totalCall = (countFindingKeyCombinations + countFindingWords);
+    cout << "Total # of recursive calls " << totalCall << endl;
+    cout << "% of calls finding words " << setprecision(4) << (double(countFindingWords) * 100.0 / totalCall) << "%" << endl;
 
     delete lexicon;
 
     return 0;
 }
 
-void listMnemonics(const string & number, int index, string result) {
+void findCompletions(string str) {
+    countFindingWords++;
+    if (!lexicon->containsPrefix(str)) return;
+    if (lexicon->contains(str))
+        cout << str << endl;
+    for (char ch = 'a'; ch <= 'z'; ch++) {
+        findCompletions(str + ch);
+    }
+}
+
+void listCompletions(const string & number, int index, string result) {
+    countFindingKeyCombinations++;
     if (index == number.length()) {
-        if (lexicon->contains(result))
-            cout << result << endl;
+        findCompletions(result);
         return;
     }
     int index_val = int(number[index] - '0');
     for (int i = 0; i < KEY_MAPPING[index_val].size(); i++) {
-        listMnemonics(number, index + 1, result + KEY_MAPPING[index_val][i]);
+        listCompletions(number, index + 1, result + KEY_MAPPING[index_val][i]);
     }
 }
