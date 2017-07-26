@@ -3,42 +3,57 @@
 #include "console.h"
 #include "vector.h"
 #include "simpio.h"
+#include "card.h"
 
 using namespace std;
 
-bool isMeasurable(int target, const Vector<int> & weights, Vector<int> correctWay);
-
-void printMeasurable(int target, const Vector<int> & weights) {
-    cout << "Measuring " << target << ":" << endl;
-    isMeasurable(target, weights, Vector<int>());
-    //cout << target << " is" << ( ? " " : " not ") << "measurable" << endl;
-}
+int countFifteens(Vector<Card> & cards);
 
 int main() {
-    Vector<int> weights;
-    weights += 1, 3, 7, 13;
-    for (int i = 0; i < 20; i++) {
-        printMeasurable(i, weights);
-    }
+    Vector<Card> cards;
+    cards += Card("5C"), Card("5D"), Card("5H"), Card("5S"), Card("JC");
+    cout << "Num fifteen " << countFifteens(cards) << endl;
     return 0;
 }
 
-bool isMeasurable(int target, const Vector<int> & weights, Vector<int> way) {
-    if (weights.size() == 1) {
-        bool measured = target == weights[0];
-        if (measured) {
-            way.add(weights[0]);		// just for printing
-            cout << way.toString() << endl;
+int getCardValue(Card & card) {
+    int rank = card.getRank();
+    if (rank == ACE)
+        return 1;
+    else if (rank >= JACK)
+        return 10;
+    else
+        return rank;
+}
+
+int countFifteensRecursive(Vector<Card> chosenCards, Vector<Card> & cards) {
+    if (cards.isEmpty()) {
+        int sum = 0;
+        for (Card card : chosenCards) {
+            sum += getCardValue(card);
         }
-        return measured;
+
+        if (sum == 15) {
+            for (int i = 0; i < chosenCards.size(); i++) {
+                if (i != 0) cout << " + ";
+                cout << chosenCards[i].toString();
+            }
+            cout << endl;
+        }
+        return sum == 15 ? 1 : 0;
     } else {
-        Vector<int> rest = weights.subList(1, weights.size() - 1);
-        Vector<int> asWeight = way;
-        Vector<int> asCounterWeight = way;
-        asWeight.add(weights[0]);
-        asCounterWeight.add(-1 * weights[0]);
-        return isMeasurable(target, rest, way) ||	// excluding the weight
-                isMeasurable(target - weights[0], rest, asWeight) ||	// using the weight on the "weights" side
-                isMeasurable(target + weights[0], rest, asCounterWeight);	// using the weight with the "mass" side
+        Vector<Card> rest;
+        if (cards.size() > 1)	// calling subList(1, n) on Vector of size 1 causes Exception
+            rest = cards.subList(1, cards.size() - 1);
+
+        int count = countFifteensRecursive(chosenCards, rest);		// exclude the card
+        chosenCards.add(cards[0]);
+        count += countFifteensRecursive(chosenCards, rest);		// include it
+        return count;
     }
+}
+
+int countFifteens(Vector<Card> & cards) {
+    Vector<Card> chosenCards;
+    return countFifteensRecursive(chosenCards, cards);
 }
