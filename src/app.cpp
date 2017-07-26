@@ -6,27 +6,24 @@
 
 using namespace std;
 
-void drawHFractal(GWindow & gw, double x, double y, double size, int order);
+const double BRANCH_DEGREE = 90;
+const double BRANCH_SCALE = 0.61;
+
+void drawFractalTree(GWindow & gw, double x, double y, double r, double theta, int order);
 
 int main() {
     GWindow gw;
-    double xc = gw.getWidth() / 2;
-    double yc = gw.getHeight() / 2;
-    drawHFractal(gw, xc, yc, 100, 3);
+    double x = gw.getWidth() / 2;
+    double y = gw.getHeight() * 0.80;
+    drawFractalTree(gw, x, y, 100, 90, 7);
     return 0;
 }
 
-void drawHFractal(GWindow & gw, double x, double y, double size, int order) {
+void drawFractalTree(GWindow & gw, double x, double y, double r, double theta, int order) {
     if (order < 0)
         return;
 
-    double x_left = x-size/2, x_right = x+size/2;
-    double y_top = y-size/2, y_bottom = y+size/2;
-    gw.drawLine(x_left, y, x_right, y);
-    gw.drawLine(x_left, y_top, x_left, y_bottom);
-    gw.drawLine(x_right, y_top, x_right, y_bottom);
-    drawHFractal(gw, x_left, y_top, size/2, order-1);
-    drawHFractal(gw, x_right, y_top, size/2, order-1);
-    drawHFractal(gw, x_left, y_bottom, size/2, order-1);
-    drawHFractal(gw, x_right, y_bottom, size/2, order-1);
+    GPoint pt = gw.drawPolarLine(x, y, r, theta);
+    drawFractalTree(gw, pt.getX(), pt.getY(), r * BRANCH_SCALE, theta+BRANCH_DEGREE/2, order-1);
+    drawFractalTree(gw, pt.getX(), pt.getY(), r * BRANCH_SCALE, theta-BRANCH_DEGREE/2, order-1);
 }
