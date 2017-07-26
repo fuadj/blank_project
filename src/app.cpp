@@ -1,33 +1,39 @@
 #include <string>
 #include "gwindow.h"
 #include <cmath>
+#include "gtypes.h"
+#include "random.h"
 
 using namespace std;
 
-const int INCH_WIDTH = 320;
-const int INCH_HEIGHT = 80;
+const int LEVEL_LIMIT = 8;
 
-const int NUM_LEVELS = 4;
-
-void drawMarker(GWindow & gw, int x, int y, int sideSpan, int level = 0);
+GPoint drawCoastLine(GWindow & gw, GPoint pt, double length, double theta, int level = 0);
 
 int main() {
     GWindow gw;
-    int center_x = gw.getWidth() / 2;
-    int center_y = int(double(gw.getHeight()) * 0.8);
-    gw.setColor("black");
+    int start_x = int(double(gw.getWidth()) * 0.1);
+    int end_x = int(double(gw.getWidth()) * 0.9);
+    int y = gw.getHeight()/2;
 
-    gw.drawLine(center_x - (INCH_WIDTH / 2), center_y, center_x + (INCH_WIDTH / 2), center_y);
+    drawCoastLine(gw, GPoint(start_x, y), end_x - start_x, 0);
 
-    drawMarker(gw, center_x, center_y, INCH_WIDTH/2);
     return 0;
 }
 
-void drawMarker(GWindow & gw, int x, int y, int sideSpan, int level) {
-    if (level < NUM_LEVELS) {
-        double tick_height = INCH_HEIGHT / pow(2, level);
-        gw.drawLine(x, y - tick_height, x, y);
-        drawMarker(gw, x - sideSpan/2, y, sideSpan/2, level+1);
-        drawMarker(gw, x + sideSpan/2, y, sideSpan/2, level+1);
+GPoint drawCoastLine(GWindow & gw, GPoint pt, double length, double theta, int level) {
+    if (level == LEVEL_LIMIT) {
+        return gw.drawPolarLine(pt, length, theta);
     }
+
+    pt = drawCoastLine(gw, pt, length/3, theta, level+1);
+    if (randomChance(0.5)) {
+        pt = drawCoastLine(gw, pt, length/3, theta+60, level+1);
+        pt = drawCoastLine(gw, pt, length/3, theta-60, level+1);
+    } else {
+        pt = drawCoastLine(gw, pt, length/3, theta-60, level+1);
+        pt = drawCoastLine(gw, pt, length/3, theta+60, level+1);
+    }
+
+    return drawCoastLine(gw, pt, length/3, theta, level+1);
 }
