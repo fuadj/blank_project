@@ -1,51 +1,48 @@
 #include <iostream>
 #include <string>
 #include "console.h"
-#include "set.h"
 #include "simpio.h"
-#include "time.h"
-#include "stack.h"
+#include "vector.h"
+#include "map.h"
 
 using namespace std;
 
-void listPermutations(string str);
+void listMnemonics(const string & number, int index = 0, string result = "");
+
+Map<int, Vector<char> > KEY_MAPPING;
+
+void addMapping(int key, const string & number) {
+    for (char ch : number) {
+        KEY_MAPPING[key].push_back(ch);
+    }
+}
 
 int main() {
-    string str = getLine("Enter a string: ");
-    listPermutations(str);
+    addMapping(0, " ");
+    addMapping(1, " ");
+    addMapping(2, "ABC");
+    addMapping(3, "DEF");
+    addMapping(4, "GHI");
+    addMapping(5, "JKL");
+    addMapping(6, "MNO");
+    addMapping(7, "PQRS");
+    addMapping(8, "TUV");
+    addMapping(9, "WXYZ");
+
+    string number = getLine("Enter number to call: ");
+
+    listMnemonics(number);
 
     return 0;
 }
 
-void swapChars(string & str, int i, int k) {
-    char temp = str[i];
-    str[i] = str[k];
-    str[k] = temp;
-}
-
-void listPermutationsRecursive(string & str, int index) {
-    if (index == (str.size() - 1)) {
-        cout << str << endl;
+void listMnemonics(const string & number, int index, string result) {
+    if (index == number.length()) {
+        cout << result << endl;
         return;
     }
-    for (int i = index; i < str.size(); i++) {
-        bool duplicate = false;
-        for (int k = i - 1; k >= index; k--) {
-            if (str[i] == str[k]) {
-                duplicate = true;
-                break;
-            }
-        }
-        if (duplicate) continue;
-
-        swapChars(str, i, index);
-
-        listPermutationsRecursive(str, index + 1);
-
-        swapChars(str, i, index);
+    int index_val = int(number[index] - '0');
+    for (int i = 0; i < KEY_MAPPING[index_val].size(); i++) {
+        listMnemonics(number, index + 1, result + KEY_MAPPING[index_val][i]);
     }
-}
-
-void listPermutations(string str) {
-    listPermutationsRecursive(str, 0);
 }
