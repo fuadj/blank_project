@@ -10,7 +10,7 @@
 
 using namespace std;
 
-const double ARRIVAL_PROBABILITY = 0.14;
+const double ARRIVAL_PROBABILITY = 0.34;
 
 const int MIN_SERVICE_TIME = 5;
 const int MAX_SERVICE_TIME = 15;
@@ -24,7 +24,7 @@ const double HALLWAY_HEIGHT = 0.02;		// as % of total HEIGHT
 const int NUM_LINES = 6;
 
 const int NUM_CASHIER_LINES = 6;
-const int NUM_CASHIERS = 9;
+const int NUM_CASHIERS = 14;
 
 const double WIDTH = 1000;
 const double HEIGHT = 700;
@@ -130,7 +130,7 @@ int main() {
         if (time_single > 0) {
             time_single--;
         } else if (!singleLine.isLineEmpty(0)) {
-            singleLine.removeCustomer(0, NULL);
+            singleLine.removeCustomer(0, t);
             time_single = randomInteger(MIN_SERVICE_TIME, MAX_SERVICE_TIME);
         }
 
@@ -138,14 +138,14 @@ int main() {
             if (time_multi_independent[i] > 0)		// the in-dependent
                 time_multi_independent[i]--;
             else if (!multiIndependentLines.isLineEmpty(i)) {
-                multiIndependentLines.removeCustomer(i, NULL);
+                multiIndependentLines.removeCustomer(i, t);
                 time_multi_independent[i] = randomInteger(MIN_SERVICE_TIME, MAX_SERVICE_TIME);
             }
 
             if (time_multi_dependent[i] > 0)		// the dependent
                 time_multi_dependent[i]--;
             else if (!multiDependentLines.isLineEmpty(i)) {
-                multiDependentLines.removeCustomer(i, NULL);
+                multiDependentLines.removeCustomer(i, t);
                 time_multi_dependent[i] = randomInteger(MIN_SERVICE_TIME, MAX_SERVICE_TIME);
             }
         }
@@ -159,7 +159,7 @@ int main() {
 
                     if (!multiCashiers.isLineEmpty(cashier_line)) {
                         last_cashier_line = cashier_line;
-                        multiCashiers.removeCustomer(cashier_line, NULL);
+                        multiCashiers.removeCustomer(cashier_line, t);
                         cashiers[i] = randomInteger(MIN_SERVICE_TIME, MAX_SERVICE_TIME);
                         break;
                     }

@@ -17,7 +17,7 @@ public:
                 double x, double y, double width, double height, int numLines);
 
     void addCustomer(int line, int arrivalTime);
-    int removeCustomer(int line, void (*fn)(void));
+    int removeCustomer(int line, int removalTime);
 
     int getNumCustomers(int line);
     bool isLineEmpty(int line);
@@ -51,10 +51,12 @@ private:
     GLabel *labelAvgLineLength;
     GLabel *labelAvgWaitTime;
 
-    int numCustomers;
+    int totalCustomersServiced;
     int totalWaitTime;
-    double avgLineLength;
-    double avgWaitTime;
+
+    // instead of looping through the lines and summing their lengths, just keep a counter
+    // and ++ when adding a customer and -- when removing one.
+    int customersInLines;
 
     void init(GWindow * gw, const std::string & name, double x, double y, double width, double height, int numLines);
 
