@@ -16,7 +16,7 @@ const int MIN_SERVICE_TIME = 5;
 const int MAX_SERVICE_TIME = 15;
 const int SIMULATION_TIME = 2000;
 
-const double X_OFFSET = 0.5;
+const double X_OFFSET = 0.15;
 const double LINE_WIDTH = 0.45;
 
 const double HALLWAY_HEIGHT = 0.02;		// as % of total HEIGHT
@@ -27,7 +27,7 @@ const int NUM_CASHIER_LINES = 6;
 const int NUM_CASHIERS = 9;
 
 const double WIDTH = 1000;
-const double HEIGHT = 1000;
+const double HEIGHT = 700;
 
 int main() {
     GWindow gw(WIDTH, HEIGHT);

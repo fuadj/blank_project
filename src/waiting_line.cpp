@@ -11,6 +11,12 @@ WaitingLine::WaitingLine(GWindow *gw, const std::string & name, double x, double
     init(gw, name, x, y, width, height, numLines);
 }
 
+GLabel *newStatLabel() {
+    GLabel *label = new GLabel("");
+    label->setFont("SansSerif-14");
+    label->setColor("#13258b");
+    return label;
+}
 
 void WaitingLine::init(GWindow * gw, const std::string & name, double x, double y, double width, double height, int numLines) {
     this->gw = gw;
@@ -20,6 +26,11 @@ void WaitingLine::init(GWindow * gw, const std::string & name, double x, double 
     this->width = width;
     this->height = height;
     this->numLines = numLines;
+
+    this->numCustomers = 0;
+    this->totalWaitTime = 0;
+    this->avgLineLength = 0;
+    this->avgWaitTime = 0;
 
     for (int i = 0; i < numLines; i++)
         this->queues.push_back(Vector<Customer>());
@@ -53,6 +64,23 @@ void WaitingLine::init(GWindow * gw, const std::string & name, double x, double 
     double label_x = x + _MINIMUM_((1.0/12.0) * width, ((width - label->getWidth())/2));
     double label_y = y - label->getFontDescent();
     gw->add(label, label_x, label_y);
+
+    labelNumCustomers = newStatLabel();
+    labelTotalWaitTime = newStatLabel();
+    labelAvgLineLength = newStatLabel();
+    labelAvgWaitTime = newStatLabel();
+
+    double _y_offset = 0;
+    GCompound *labelCompound = new GCompound();
+    labelCompound->add(labelNumCustomers, 0, _y_offset);
+    _y_offset += labelNumCustomers->getHeight();
+    labelCompound->add(labelTotalWaitTime, 0, _y_offset);
+    _y_offset += labelTotalWaitTime->getHeight();
+    labelCompound->add(labelAvgLineLength, 0, _y_offset);
+    _y_offset += labelAvgLineLength->getHeight();
+    labelCompound->add(labelAvgWaitTime, 0, _y_offset);
+
+    gw->add(labelCompound, x + width + width * 0.05, (y + height/2) - (_y_offset/2));
 }
 
 int getNthPlaceColor(int i, int numPlaces) {
@@ -92,6 +120,8 @@ void WaitingLine::addCustomer(int lineNumber, int arrivalTime) {
     customer.profile = profile;
 
     queues[lineNumber].push_back(customer);
+
+    labelNumCustomers->setLabel("Num Customers: " + integerToString(++numCustomers));
 }
 
 int WaitingLine::removeCustomer(int lineNumber, void (*fn)(void)) {

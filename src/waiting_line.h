@@ -46,6 +46,16 @@ private:
     std::string lineName;
     int numLines;
 
+    GLabel *labelNumCustomers;
+    GLabel *labelTotalWaitTime;
+    GLabel *labelAvgLineLength;
+    GLabel *labelAvgWaitTime;
+
+    int numCustomers;
+    int totalWaitTime;
+    double avgLineLength;
+    double avgWaitTime;
+
     void init(GWindow * gw, const std::string & name, double x, double y, double width, double height, int numLines);
 
     const int COLOR_WALL = 0xff000000;
