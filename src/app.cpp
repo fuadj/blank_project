@@ -88,8 +88,11 @@ int main() {
 
     int last_cashier_line = 0;		// again like what was happening to "last_dependent_line"
 
+    gw.setRepaintImmediately(false);
+
     for (int t = 0; t < SIMULATION_TIME; t++) {
         pause(10);
+        gw.repaint();
 
         /**
          * ========================
