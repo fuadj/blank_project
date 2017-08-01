@@ -17,7 +17,7 @@ public:
                 double x, double y, double width, double height, int numLines);
 
     void addCustomer(int line, int arrivalTime);
-    int removeCustomer(int line, int removalTime);
+    void removeCustomer(int line, int removalTime);
 
     int getNumCustomers(int line);
     bool isLineEmpty(int line);
@@ -63,6 +63,8 @@ private:
     int customersInLines;
 
     void init(GWindow * gw, const std::string & name, double x, double y, double width, double height, int numLines);
+
+    void updateStat();
 
     const int COLOR_WALL = 0xff000000;
 };

@@ -87,31 +87,41 @@ void WaitingLine::init(GWindow * gw, const std::string & name, double x, double 
 
 int getNthPlaceColor(int i, int numPlaces) {
     int start_x = 0, end_x = 255;
-    double d = double(numPlaces - i)/numPlaces;
+    //double d = double(numPlaces - i)/numPlaces;
+    double d = double(i)/numPlaces;
 
-    int red = 0xff & int(d * (end_x - start_x) + start_x);
+    //int red = 0xff & int(d * (end_x - start_x) + start_x);
+    int red = 0xff & int(end_x - d * (end_x - start_x));
+    int color = (red << 16);
+
+    return color;
+}
+
+int getNthPlaceColor(int front, int nth, int back) {
+    const int START_RED = 0, END_RED = 255;
+    double d;
+
+    if (back == front)
+        d = 0;
+    else
+        d = pow(double(nth - front)/(back - front), 1.0);
+
+    int red = 0xff & int(END_RED - d * (END_RED - START_RED));
     int color = (red << 16);
 
     return color;
 }
 
 void WaitingLine::addCustomer(int lineNumber, int arrivalTime) {
-    double size = CUSTOMER_DIM * hallwayHeight;
-    double y_offset = (hallwayHeight - size)/2;
+    double profile_size = CUSTOMER_DIM * hallwayHeight;
+    double y_offset = (hallwayHeight - profile_size)/2;
 
-    GOval *profile = new GOval(size, size);
+    GOval *profile = new GOval(profile_size, profile_size);
 
     profile->setFilled(true);
-    profile->setFillColor(
-                getNthPlaceColor(queues[lineNumber].size(), 1 + queues[lineNumber].size())
-                );
+    double x_offset = double(x + width - (profile_size * (1 + getNumCustomers(lineNumber))));
+    profile->setLocation(GPoint(x_offset, lineBounds[lineNumber].getY() + y_offset));
 
-    int customers_to_right = getNumCustomers(lineNumber);
-
-    profile->setLocation(GPoint(
-                             ((x + width - (CUSTOMER_DIM * hallwayHeight)) -
-                              (customers_to_right * (CUSTOMER_DIM * hallwayHeight))),
-                             lineBounds[lineNumber].getY() + y_offset));
     gw->add(profile);
 
     Customer customer;
@@ -120,18 +130,16 @@ void WaitingLine::addCustomer(int lineNumber, int arrivalTime) {
 
     queues[lineNumber].push_back(customer);
 
+    int front_arrival = queues[lineNumber][queueStartIndex[lineNumber]].arrivalTime;
+    profile->setFillColor(getNthPlaceColor(front_arrival, arrivalTime, arrivalTime));
+
     totalCustomersServiced++;
     customersInLines++;
 
-    std::ostringstream str;
-    str << "Num Customers:" << std::setw(10) << std::right << totalCustomersServiced;
-    labelNumCustomers->setLabel(str.str());
-    str.str("");
-    str << "Avg Line Length:" << std::setw(12) << std::setprecision(2) << (double(customersInLines)/numLines);
-    labelAvgLineLength->setLabel(str.str());
+    updateStat();
 }
 
-int WaitingLine::removeCustomer(int lineNumber, int removalTime) {
+void WaitingLine::removeCustomer(int lineNumber, int removalTime) {
     Vector<Customer> &customerQueue = queues[lineNumber];
     Customer customer = customerQueue[queueStartIndex[lineNumber]];
     queueStartIndex[lineNumber]++;	// simulate "dequeue"
@@ -142,26 +150,40 @@ int WaitingLine::removeCustomer(int lineNumber, int removalTime) {
     // if there are still other customers, shift them to the right
     int start = queueStartIndex[lineNumber];
     int end = customerQueue.size();
-    for (int i = start, k = 0; i < end; i++, k++) {
-        customerQueue[i].profile->move(CUSTOMER_DIM * hallwayHeight, 0);
-        customerQueue[i].profile->setFillColor(getNthPlaceColor(k, (end - start)));
+    if (start < end) {
+        int front_arrival = customerQueue[start].arrivalTime;
+        int back_arrival = customerQueue[customerQueue.size() - 1].arrivalTime;
+        for (int i = start, k = 0; i < end; i++, k++) {
+            customerQueue[i].profile->move(CUSTOMER_DIM * hallwayHeight, 0);
+            customerQueue[i].profile->setFillColor(getNthPlaceColor(front_arrival, customerQueue[i].arrivalTime, back_arrival));
+        }
     }
 
     int wait_time = removalTime - customer.arrivalTime;
 
     totalWaitTime += wait_time;
+    customersInLines--;
+
+    updateStat();
+}
+
+void WaitingLine::updateStat() {
     std::ostringstream str;
+
     str << "Total Wait Time:" << std::setw(12) << totalWaitTime;
     labelTotalWaitTime->setLabel(str.str());
+
     str.str("");		// clear it
     str << "Avg Wait Time:" << std::setw(15) << std::setprecision(2) << (double(totalWaitTime)/totalCustomersServiced);
     labelAvgWaitTime->setLabel(str.str());
-    customersInLines--;
+
     str.str("");
     str << "Avg Line Length:" << std::setw(12) << std::setprecision(2) << (double(customersInLines)/numLines);
     labelAvgLineLength->setLabel(str.str());
 
-    return customer.arrivalTime;
+    str.str("");
+    str << "Num Customers:" << std::setw(10) << std::right << totalCustomersServiced;
+    labelNumCustomers->setLabel(str.str());
 }
 
 int WaitingLine::getNumCustomers(int line) {
