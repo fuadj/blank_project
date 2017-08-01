@@ -9,7 +9,7 @@
 
 using namespace std;
 
-const double ARRIVAL_PROBABILITY = 0.10;
+const double ARRIVAL_PROBABILITY = 0.14;
 
 const int MIN_SERVICE_TIME = 5;
 const int MAX_SERVICE_TIME = 15;
@@ -79,6 +79,8 @@ int main() {
     // So, we now do a round-robin style "handing" out of customers.
     int last_dependent_line = 0;
 
+    int last_cashier_line = 0;		// again like what was happening to "last_dependent_line"
+
     for (int t = 0; t < SIMULATION_TIME; t++) {
         pause(10);
 
@@ -145,13 +147,14 @@ int main() {
             if (cashiers[i] > 0) {		// if servicing a customer ignore and move-on
                 cashiers[i]--;
             } else {
-                bool customer_found = false;
-                // look if there is ANY customer across the lines to be serviced
-                for (int k = 0; k < NUM_CASHIER_LINES && !customer_found; k++) {
-                    if (!multiCashiers.isLineEmpty(k)) {
-                        multiCashiers.removeCustomer(k, NULL);
+                for (int k = 0; k < NUM_CASHIER_LINES; k++) {
+                    int cashier_line = (last_cashier_line + k + 1) % NUM_CASHIER_LINES;
+
+                    if (!multiCashiers.isLineEmpty(cashier_line)) {
+                        last_cashier_line = cashier_line;
+                        multiCashiers.removeCustomer(cashier_line, NULL);
                         cashiers[i] = randomInteger(MIN_SERVICE_TIME, MAX_SERVICE_TIME);
-                        customer_found = true;
+                        break;
                     }
                 }
             }
