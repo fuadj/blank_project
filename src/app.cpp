@@ -19,6 +19,8 @@ const int SIMULATION_TIME = 2000;
 const double X_OFFSET = 0.15;
 const double LINE_WIDTH = 0.45;
 
+const double SIMULATION_TIME_OFFSET = 0.03;
+
 const double HALLWAY_HEIGHT = 0.02;		// as % of total HEIGHT
 
 const int NUM_LINES = 6;
@@ -51,6 +53,11 @@ int main() {
 
     double x_offset = X_OFFSET * WIDTH;
     double line_width = LINE_WIDTH * WIDTH;
+
+    GLabel *labelSimTime = new GLabel("");
+    labelSimTime->setFont("Console-24");
+    labelSimTime->setColor("black");
+    gw.add(labelSimTime, SIMULATION_TIME_OFFSET * WIDTH, SIMULATION_TIME_OFFSET * HEIGHT + labelSimTime->getHeight());
 
     WaitingLine singleLine(&gw,
                            "Single Customer Line",
@@ -91,8 +98,7 @@ int main() {
     gw.setRepaintImmediately(false);
 
     for (int t = 0; t < SIMULATION_TIME; t++) {
-        pause(10);
-        gw.repaint();
+        labelSimTime->setLabel("Time: " + integerToString(t));
 
         /**
          * ========================
@@ -169,6 +175,9 @@ int main() {
                 }
             }
         }
+
+        gw.repaint();
+        pause(10);
     }
 
     return 0;

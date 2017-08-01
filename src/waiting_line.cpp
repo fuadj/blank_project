@@ -85,18 +85,6 @@ void WaitingLine::init(GWindow * gw, const std::string & name, double x, double 
     gw->add(labelCompound, x + width + width * 0.05, (y + height/2) - (_y_offset/2));
 }
 
-int getNthPlaceColor(int i, int numPlaces) {
-    int start_x = 0, end_x = 255;
-    //double d = double(numPlaces - i)/numPlaces;
-    double d = double(i)/numPlaces;
-
-    //int red = 0xff & int(d * (end_x - start_x) + start_x);
-    int red = 0xff & int(end_x - d * (end_x - start_x));
-    int color = (red << 16);
-
-    return color;
-}
-
 int getNthPlaceColor(int front, int nth, int back) {
     const int START_RED = 0, END_RED = 255;
     double d;
