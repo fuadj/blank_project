@@ -5,6 +5,7 @@
 #include "queue.h"
 #include "vector.h"
 #include "gobjects.h"
+#include <string>
 
 const double WALL_2_HALLWAY = 5.1;		// hallway is this factor X bigger than the Wall
 const double CUSTOMER_DIM = 0.5;	// as % of hallway-height
@@ -12,7 +13,8 @@ const double CUSTOMER_DIM = 0.5;	// as % of hallway-height
 class WaitingLine {
 public:
     WaitingLine();
-    WaitingLine(GWindow * gw, double x, double y, double width, double height, int numLines);
+    WaitingLine(GWindow * gw, const std::string & name,
+                double x, double y, double width, double height, int numLines);
 
     void addCustomer(int line, int arrivalTime);
     int removeCustomer(int line, void (*fn)(void));
@@ -41,7 +43,10 @@ private:
     double wallHeight;
     double hallwayHeight;
 
-    void init(GWindow * gw, double x, double y, double width, double height, int numLines);
+    std::string lineName;
+    int numLines;
+
+    void init(GWindow * gw, const std::string & name, double x, double y, double width, double height, int numLines);
 
     const int COLOR_WALL = 0xff000000;
 };

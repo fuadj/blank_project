@@ -6,6 +6,7 @@
 #include "random.h"
 #include "vector.h"
 #include "queue.h"
+#include "strlib.h"
 
 using namespace std;
 
@@ -30,9 +31,11 @@ const double HEIGHT = 1000;
 
 int main() {
     GWindow gw(WIDTH, HEIGHT);
-    //GWindow gw;
-    //double WIDTH = getScreenWidth(), HEIGHT = getScreenHeight();
-    //gw.setSize(WIDTH, HEIGHT);
+    /*
+    GWindow gw;
+    double WIDTH = getScreenWidth(), HEIGHT = getScreenHeight();
+    gw.setSize(WIDTH, HEIGHT);
+    */
 
     double single_height = WaitingLine::heightForNumLines(1, HALLWAY_HEIGHT * HEIGHT);
     double multi_independent_height = WaitingLine::heightForNumLines(NUM_LINES, HALLWAY_HEIGHT * HEIGHT);
@@ -50,20 +53,24 @@ int main() {
     double line_width = LINE_WIDTH * WIDTH;
 
     WaitingLine singleLine(&gw,
+                           "Single Customer Line",
                            x_offset, y_single, line_width, single_height,
                            1);
 
     WaitingLine multiIndependentLines(&gw,
+                                      "Independent Lines",
                                       x_offset, y_multi_independet, line_width, multi_independent_height,
                                       NUM_LINES);
 
     // If a customer arrives at a line there won't be another customer
     // for the other lines until the next simulation cycle
     WaitingLine multiDependentLines(&gw,
+                                    "Dependent Lines",
                                     x_offset, y_multi_dependent, line_width, multi_dependent_height,
                                     NUM_LINES);
 
     WaitingLine multiCashiers(&gw,
+                              "Multi Cashiers (" + integerToString(NUM_CASHIERS) + ")",
                               x_offset, y_multi_cashier, line_width, multi_cashier_height,
                               NUM_CASHIER_LINES);
 

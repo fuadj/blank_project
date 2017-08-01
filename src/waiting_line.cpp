@@ -1,21 +1,26 @@
 #include "waiting_line.h"
 #include "gobjects.h"
 #include "strlib.h"
+#include <cmath>
 
 WaitingLine::WaitingLine() {
-    init(NULL, 0, 0, 0, 0, 1);
+    init(NULL, "", 0, 0, 0, 0, 1);
 }
 
-WaitingLine::WaitingLine(GWindow *gw, double x, double y, double width, double height, int numLines) {
-    init(gw, x, y, width, height, numLines);
+WaitingLine::WaitingLine(GWindow *gw, const std::string & name, double x, double y, double width, double height, int numLines) {
+    init(gw, name, x, y, width, height, numLines);
 }
 
-void WaitingLine::init(GWindow *gw, double x, double y, double width, double height, int numLines) {
+
+void WaitingLine::init(GWindow * gw, const std::string & name, double x, double y, double width, double height, int numLines) {
     this->gw = gw;
+    this->lineName = name;
     this->x = x;
     this->y = y;
     this->width = width;
     this->height = height;
+    this->numLines = numLines;
+
     for (int i = 0; i < numLines; i++)
         this->queues.push_back(Vector<Customer>());
 
@@ -39,6 +44,15 @@ void WaitingLine::init(GWindow *gw, double x, double y, double width, double hei
         gw->fillRect(x, currentY, width, wallHeight);
         currentY += wallHeight;
     }
+
+    GLabel *label = new GLabel(lineName);
+    label->setFont("SansSerif-34");
+    label->setColor("#3355bb");
+
+#define _MINIMUM_(x,y) ((x) < (y) ? (x) : (y))
+    double label_x = x + _MINIMUM_((1.0/12.0) * width, ((width - label->getWidth())/2));
+    double label_y = y - label->getFontDescent();
+    gw->add(label, label_x, label_y);
 }
 
 int getNthPlaceColor(int i, int numPlaces) {
