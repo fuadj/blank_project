@@ -34,8 +34,10 @@ void WaitingLine::init(GWindow * gw, const std::string & name, double x, double 
     this->totalWaitTime = 0;
     this->customersInLines = 0;
 
-    for (int i = 0; i < numLines; i++)
+    for (int i = 0; i < numLines; i++) {
         this->queues.push_back(Vector<Customer>());
+        this->queueStartIndex.push_back(0);
+    }
 
     wallHeight = height / (double(numLines) * (WALL_2_HALLWAY + 1) + 1);
     hallwayHeight = wallHeight * WALL_2_HALLWAY;
@@ -104,7 +106,7 @@ void WaitingLine::addCustomer(int lineNumber, int arrivalTime) {
                 getNthPlaceColor(queues[lineNumber].size(), 1 + queues[lineNumber].size())
                 );
 
-    int customers_to_right = queues[lineNumber].size();
+    int customers_to_right = getNumCustomers(lineNumber);
 
     profile->setLocation(GPoint(
                              ((x + width - (CUSTOMER_DIM * hallwayHeight)) -
@@ -131,16 +133,18 @@ void WaitingLine::addCustomer(int lineNumber, int arrivalTime) {
 
 int WaitingLine::removeCustomer(int lineNumber, int removalTime) {
     Vector<Customer> &customerQueue = queues[lineNumber];
-    Customer customer = customerQueue[0];
-    customerQueue.remove(0);		// "dequeue"
+    Customer customer = customerQueue[queueStartIndex[lineNumber]];
+    queueStartIndex[lineNumber]++;	// simulate "dequeue"
 
     gw->remove(customer.profile);
     delete customer.profile;
 
     // if there are still other customers, shift them to the right
-    for (int i = 0; i < customerQueue.size(); i++) {
+    int start = queueStartIndex[lineNumber];
+    int end = customerQueue.size();
+    for (int i = start, k = 0; i < end; i++, k++) {
         customerQueue[i].profile->move(CUSTOMER_DIM * hallwayHeight, 0);
-        customerQueue[i].profile->setFillColor(getNthPlaceColor(i, queues[lineNumber].size()));
+        customerQueue[i].profile->setFillColor(getNthPlaceColor(k, (end - start)));
     }
 
     int wait_time = removalTime - customer.arrivalTime;
@@ -161,7 +165,7 @@ int WaitingLine::removeCustomer(int lineNumber, int removalTime) {
 }
 
 int WaitingLine::getNumCustomers(int line) {
-    return queues[line].size();
+    return queues[line].size() - queueStartIndex[line];
 }
 
 bool WaitingLine::isLineEmpty(int line) {

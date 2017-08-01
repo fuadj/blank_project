@@ -40,6 +40,10 @@ private:
     Vector< Vector<Customer> > queues;
     Vector< GRectangle > lineBounds;
 
+    // instead of removing the 0-th element from the queue vectors, just use the
+    // indicies by starting at the index and ignoring anything below it
+    Vector<int> queueStartIndex;
+
     double wallHeight;
     double hallwayHeight;
 
