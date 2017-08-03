@@ -12,6 +12,9 @@ res/
 # we don't wanna delete this file as it is hard to get
 !res/EnglishWords.dat
 
+# sample maze
+!res/maze.txt
+
 !lib/addr2line.exe
 
 !lib/spl.jar
