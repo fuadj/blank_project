@@ -45,8 +45,8 @@ bool solveMaze(Maze & maze, Point start, int level) {
         }
     }
     /*
-    */
     maze.unmarkSquare(start);
+    */
     maze.eraseMark(start);
     return false;
 }
