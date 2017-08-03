@@ -1,62 +1,106 @@
+/**
+ * This program simulates a simple variant of the game of NIm. In this
+ * version, the game starts with a pile of 13 coins on a table. Players
+ * then take turns removing 1, 2, or 3 coins from the pile. The player
+ * who takes the last coin loses.
+ */
 #include <iostream>
-#include <cmath>
-#include "gwindow.h"
-#include "maze.h"
-#include "point.h"
-
+#include <string>
+#include "error.h"
+#include "simpio.h"
+#include "strlib.h"
+#include "console.h"
 using namespace std;
 
-bool solveMaze(Maze & maze, Point start, int level);
-Point adjacentPoint(Point start, Direction dir);
+const int N_COINS = 13;
+const int MAX_MOVE = 3;
+const int NO_GOOD_MOVE = -1;
 
-const int ANIMATION_TIME = 5;
-int main() {
-    GWindow gw(1000, 700);
-    Maze maze("maze.txt");
-    double margin = std::max(0.10*gw.getWidth(), 0.10*gw.getHeight());
-    maze.setWindow(&gw, margin, margin,
-                   gw.getWidth() - 2.0*margin, gw.getHeight() - 2.0*margin);
-    maze.draw();
-    solveMaze(maze, maze.getStartPosition(), 0);
-    return 0;
+enum Player { HUMAN, COMPUTER };
+
+Player opponent(Player player) {
+    return (player == HUMAN) ? COMPUTER : HUMAN;
 }
 
-const double COLOR_DEGRADING_FACTOR = 0.65;
-int levelColor(Maze & maze, int level) {
-    int possible_levels = maze.numCols() * maze.numRows();
-    int red = 0xff & int(255 - 255.0*(pow(double(level) / possible_levels, COLOR_DEGRADING_FACTOR)));
-    return red << 16;
-}
+const Player STARTING_PLAYER = HUMAN;
 
-bool solveMaze(Maze & maze, Point start, int level) {
-    pause(ANIMATION_TIME);
-    if (maze.isOutside(start))
-        return true;
-    if (maze.isMarked(start))
-        return false;
-    maze.markSquare(start);
-    maze.drawMark(start, levelColor(maze, level));
-    for (Direction dir = NORTH; dir <= WEST; dir++) {
-        if (!maze.wallExists(start, dir)) {
-            Point neighbour = adjacentPoint(start, dir);
-            if (solveMaze(maze, neighbour, level + 1)) {
-                return true;
+class SimpleNim {
+public:
+    void play() {
+        nCoins = N_COINS;
+        whoseTurn = STARTING_PLAYER;
+        while (nCoins > 1) {
+            cout << "There are " << nCoins << " coins in the pile." << endl;
+            if (whoseTurn == HUMAN) {
+                nCoins -= getUserMove();
+            } else {
+                int nTaken = getComputerMove();
+                cout << "I'll take " << nTaken << "." << endl;
+                nCoins -= nTaken;
             }
+            whoseTurn = opponent(whoseTurn);
+        }
+        announceResult();
+    }
+
+    void printInstructions() {
+        cout << "Welcome to the game of Nim!" << endl;
+        cout << "In this game, we will start with a pile of" << endl;
+        cout << N_COINS << " coins on the table. On each turn, you" << endl;
+        cout << "and I will alternately taken between 1 and" << endl;
+        cout << MAX_MOVE << " coins from the table. The player who" << endl;
+        cout << "takes the last coin loses." << endl << endl;
+    }
+
+private:
+    int getComputerMove() {
+        int nTaken = findGoodMove(nCoins);
+        return (nTaken == NO_GOOD_MOVE) ? 1 : nTaken;
+    }
+
+    int findGoodMove(int nCoins) {
+        int limit = (nCoins < MAX_MOVE) ? nCoins : MAX_MOVE;
+        for (int nTaken = 1; nTaken <= limit; nTaken++) {
+            if (isBadPosition(nCoins - nTaken)) return nTaken;
+        }
+        return NO_GOOD_MOVE;
+    }
+
+    bool isBadPosition(int nCoins) {
+        if (nCoins == 1) return true;
+        return findGoodMove(nCoins) == NO_GOOD_MOVE;
+    }
+
+    int getUserMove() {
+        while (true) {
+            int nTaken = getInteger("How many would you like? ");
+            int limit = (nCoins < MAX_MOVE) ? nCoins : MAX_MOVE;
+            if (nTaken > 0 && nTaken <= limit) return nTaken;
+            cout << "That's cheating! Please choose a number";
+            cout << " between 1 and " << limit << "." << endl;
+            cout << "There are " << nCoins << " coins in the pile." << endl;
         }
     }
-    /*
-    maze.unmarkSquare(start);
-    */
-    maze.eraseMark(start);
-    return false;
-}
 
-Point adjacentPoint(Point start, Direction dir) {
-    switch (dir) {
-    case NORTH: return Point(start.getX(), start.getY() + 1);
-    case EAST: 	return Point(start.getX() + 1, start.getY());
-    case SOUTH: return Point(start.getX(), start.getY() - 1);
-    case WEST: 	return Point(start.getX() - 1, start.getY());
-    default: 	return start;
+    void announceResult() {
+        if (nCoins == 0) {
+            cout << "You took the last coin. You loose." << endl;
+        } else {
+            cout << "There is only one coin left." << endl;
+            if (whoseTurn == HUMAN)
+                cout << "I win." << endl;
+            else
+                cout << "I lose." << endl;
+        }
     }
+
+    int nCoins;
+    Player whoseTurn;
+};
+
+int main() {
+    SimpleNim game;
+    game.printInstructions();
+    game.play();
+    return 0;
 }
