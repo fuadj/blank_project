@@ -10,11 +10,16 @@
 #include "simpio.h"
 #include "strlib.h"
 #include "console.h"
+#include "random.h"
+#include <iomanip>
+#include <cmath>
 using namespace std;
 
 const int N_COINS = 23;
 const int MAX_MOVE = 7;
 const int NO_GOOD_MOVE = -1;
+
+const double LUCK_FACTOR = 0.4;
 
 enum Player { HUMAN, COMPUTER };
 
@@ -33,11 +38,12 @@ public:
     void play() {
         int turn = 0;
         nCoins = N_COINS;
+        int width = int(log10(N_COINS)) + 1;
         while (nCoins > 1) {
             cout << playerTurn(turn) << " ";
-            cout << "There are " << nCoins << " coins in the pile.";
+            cout << "There are " << setw(width) << nCoins << " coins in the pile";
             int nTaken = getComputerMove();
-            cout << " takes " << nTaken << "." << endl;
+            cout << " Takes " << nTaken << "." << endl;
             nCoins -= nTaken;
             turn++;
         }
@@ -75,7 +81,9 @@ private:
 
     bool isBadPosition(int nCoins) {
         if (nCoins == 1) return true;
-        return findGoodMove(nCoins) == NO_GOOD_MOVE;
+        return randomChance(LUCK_FACTOR) ?
+                    (findGoodMove(nCoins) == NO_GOOD_MOVE) :
+                    false;
     }
 
     int getUserMove() {
