@@ -159,6 +159,10 @@ void Maze::draw() {
 const double SQRT_OF_2 = pow(2, 0.5);
 
 void Maze::drawMark(Point p, std::string color) {
+    drawMark(p, convertColorToRGB(color));
+}
+
+void Maze::drawMark(Point p, int color) {
     checkWindowConfigured();
     if (!pointInBounds(p))
         error("PointT is not in bounds for maze");
