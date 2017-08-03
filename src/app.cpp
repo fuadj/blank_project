@@ -12,8 +12,8 @@
 #include "console.h"
 using namespace std;
 
-const int N_COINS = 13;
-const int MAX_MOVE = 3;
+const int N_COINS = 23;
+const int MAX_MOVE = 7;
 const int NO_GOOD_MOVE = -1;
 
 enum Player { HUMAN, COMPUTER };
@@ -22,25 +22,32 @@ Player opponent(Player player) {
     return (player == HUMAN) ? COMPUTER : HUMAN;
 }
 
-const Player STARTING_PLAYER = HUMAN;
+string playerTurn(int turnCount) {
+    if ((turnCount % 2) == 0)
+        return "[A]";
+    return "[B]";
+}
 
 class SimpleNim {
 public:
     void play() {
+        int turn = 0;
         nCoins = N_COINS;
-        whoseTurn = STARTING_PLAYER;
         while (nCoins > 1) {
-            cout << "There are " << nCoins << " coins in the pile." << endl;
-            if (whoseTurn == HUMAN) {
-                nCoins -= getUserMove();
-            } else {
-                int nTaken = getComputerMove();
-                cout << "I'll take " << nTaken << "." << endl;
-                nCoins -= nTaken;
-            }
-            whoseTurn = opponent(whoseTurn);
+            cout << playerTurn(turn) << " ";
+            cout << "There are " << nCoins << " coins in the pile.";
+            int nTaken = getComputerMove();
+            cout << " takes " << nTaken << "." << endl;
+            nCoins -= nTaken;
+            turn++;
         }
-        announceResult();
+
+        if (nCoins == 0) {
+            cout << "No coin left ";
+        } else {
+            cout << "1 coin left ";
+        }
+        cout << playerTurn(turn) << " looses." << endl;
     }
 
     void printInstructions() {
