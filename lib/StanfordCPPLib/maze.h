@@ -72,6 +72,8 @@ public:
     * all marks.
     */
     void drawMark(Point p, std::string color);
+    void drawMark(Point p, int color);
+    void eraseMark(Point p);
 
 private:
     struct MCell {

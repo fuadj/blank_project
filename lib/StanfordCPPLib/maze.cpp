@@ -122,7 +122,7 @@ int Maze::numCols() {
 }
 
 bool Maze::pointInBounds(Point p) {
-    return (p.getX() >= 0 && p.getX() < numCols() && p.getY() >=0 && p.getY() < numCols());
+    return (p.getX() >= 0 && p.getX() < numCols() && p.getY() >=0 && p.getY() < numRows());
 }
 
 void Maze::clearWindow() {
@@ -159,6 +159,10 @@ void Maze::draw() {
 const double SQRT_OF_2 = pow(2, 0.5);
 
 void Maze::drawMark(Point p, std::string color) {
+    drawMark(p, convertColorToRGB(color));
+}
+
+void Maze::drawMark(Point p, int color) {
     checkWindowConfigured();
     if (!pointInBounds(p))
         error("PointT is not in bounds for maze");
@@ -174,6 +178,19 @@ void Maze::drawMark(Point p, std::string color) {
                       SQRT_OF_2 * length, -45);
 }
 
+void Maze::eraseMark(Point p) {
+    checkWindowConfigured();
+    if (!pointInBounds(p))
+        error("PointT is not in bounds for maze");
+
+    double margin = cellSize*.2;
+    double length = cellSize - 2*margin;
+    gw->setColor("white");
+    gw->fillRect(bottomX + p.getX()*cellSize + margin,
+                 bottomY - (p.getY()*cellSize + cellSize - margin),
+                 length, length);
+}
+
 Direction Maze::neighborDir(Point p1, Point p2) {
     if ((abs(p1.getY()-p2.getY()) + abs(p1.getX()-p2.getX())) != 1)
         error("Points are not neighbors");
@@ -185,7 +202,6 @@ Direction Maze::neighborDir(Point p1, Point p2) {
 
 void Maze::drawWallsForCell(Point p) {
     checkWindowConfigured();
-
     gw->setColor(cells[p.getY()][p.getX()].walls[SOUTH] ? "Black" : "White");
     GPoint pt = gw->drawPolarLine(bottomX + p.getX()*cellSize,
                                  bottomY - p.getY()*cellSize,
