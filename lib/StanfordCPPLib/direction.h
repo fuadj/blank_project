@@ -18,7 +18,7 @@
  * This enumerated type is used to represent the four compass directions.
  */
 
-enum Direction { NORTH, EAST, SOUTH, WEST };
+enum Direction { NORTH, EAST, SOUTH, WEST, NUM_DIRS };
 
 /*
  * Function: leftFrom
