@@ -22,20 +22,26 @@ struct Move {
     Point start, end;
 };
 
+/*
 const int N_CELLS = 7;
 const int N_EDGE = 2;
-const int ANIMATION_SPEED = 50;
+*/
+// can't really solve for N = (7, 2). simpler is (5, 2)
+const int N_CELLS = 5;
+const int N_EDGE = 2;
+const int CENTER_X = N_CELLS/2, CENTER_Y = N_CELLS/2;
+
+const int ANIMATION_SPEED = 100;
+const int N_FADE_STEPS = 2;
 
 const int PEG = 1;
 const int HOLE = 2;
 const int OUTSIDE = -1;
 
-const int CENTER_X = 3, CENTER_Y = 3;
-
 //This draws and initializes the board with the center being a hole and the rest pegs.
 void drawInitialBoard(Graphics & gr, Grid<int> & board);
 bool solvePegSolitaire(Graphics & gr, Grid<int> & board, int level);
-void drawCell(Graphics & gr, Point pt, string color, bool is_filled);
+void drawCell(Graphics & gr, Point pt, int color);
 
 int main() {
     GWindow gw(1000, 700);
@@ -100,67 +106,60 @@ void drawInitialBoard(Graphics & gr, Grid<int> & board) {
             if (board[r][c] != OUTSIDE) {
                 int cell = board[r][c];
                 if (cell == HOLE) {
-                    drawCell(gr, Point(c, r), "white", false);
+                    drawCell(gr, Point(c, r), 0xffffff);
                 } else {
-                    drawCell(gr, Point(c, r), "black", true);
+                    drawCell(gr, Point(c, r), 0x000000);
                 }
             }
         }
     }
 }
 
-const string BLUE = "blue";
+const double FADE_START = 0.8;
+const double FADE_MIDLLE = 0.1;
+const double FADE_END = 0.7;
 
-void animatePegMovement(Graphics & gr, Point start, Point mid, Point end, bool isReversing) {
-    if (!isReversing) {
-        drawCell(gr, start, "white", false);
-        drawCell(gr, mid, "white", false);
-        drawCell(gr, end, "blue", true);
-    } else {
-        drawCell(gr, start, "black", true);
-        drawCell(gr, mid, "black", true);
-        drawCell(gr, end, "white", false);
-    }
+int expandToAllColors(int blue) {
+    blue &= 0xff;
+    return (blue << 16) | (blue << 8) | blue;
+}
 
-    if (true)
-        return;
-    /*
-    //attempt at trying to simulate movement, but it is fkn hard
-    drawCell(gr, start, "white", false);
-    pause(5);
-    const int N_STEPS = 100;
-    const int MID = N_STEPS/2;
+int PRECOMPUTED_COLOR_START[N_FADE_STEPS + 1];
+int PRECOMPUTED_COLOR_MID[N_FADE_STEPS + 1];
+int PRECOMPUTED_COLOR_END[N_FADE_STEPS + 1];
 
-    double x = gr.rect->getX() + gr.cell_size * start.getX();
-    double y = gr.rect->getY() + gr.cell_size * start.getY();
-    double dx = gr.cell_size * (end.getX() - start.getX());
-    double dy = gr.cell_size * (end.getY() - start.getY());
-
-    dx /= N_STEPS;
-    dy /= N_STEPS;
-
-    double circle_size = gr.cell_size - gr.margin;
-    GOval *circle = new GOval(circle_size, circle_size);
-    circle->setFilled(true);
-    circle->setFillColor(BLUE);
-
-    for (int i = 0; i < N_STEPS; i++) {
-        if (i == MID) {
-            if (isReversing) {
-
-            } else {
-
-            }
+struct precomputer {
+    precomputer() {
+        double t = 0;
+        double dt = 1.0 / N_FADE_STEPS;
+        for (int i = 0; i <= N_FADE_STEPS; i++) {
+            PRECOMPUTED_COLOR_START[i] = expandToAllColors(int(255.0 * pow(t, FADE_START)));
+            PRECOMPUTED_COLOR_MID[i] = expandToAllColors(int(255.0 * pow(t, FADE_MIDLLE)));
+            PRECOMPUTED_COLOR_END[i] = 0xff | expandToAllColors(int(255.0 * (1.0 - pow(t, FADE_END))));
+            t += dt;
         }
-        gr.gw->draw(circle, x, y);
-        pause(2);
-        gr.gw->setColor("white");		// overwrite the trail
-        gr.gw->fillOval(x, y, circle_size, circle_size);
-        x += dx; y += dy;
     }
-    delete circle;
-    drawCell(gr, end, "black", true);
-    */
+} _unused_instance;
+
+void animatePegMovement(Graphics & gr, Point start, Point mid, Point end, bool forward) {
+    int begin;
+    int finish;
+    int delta;
+    if (forward) {
+        begin = 0;
+        finish = N_FADE_STEPS + 1;
+        delta = 1;
+    } else {
+        begin = N_FADE_STEPS;
+        finish = -1;
+        delta = -1;
+    }
+    for (int i = begin; i != finish; i += delta) {
+        drawCell(gr, start, PRECOMPUTED_COLOR_START[i]);
+        drawCell(gr, mid, PRECOMPUTED_COLOR_MID[i]);
+        drawCell(gr, end, PRECOMPUTED_COLOR_END[i]);
+        pause(ANIMATION_SPEED);
+    }
 }
 
 void applyMove(Graphics & gr, Grid<int> & board, Move move) {
@@ -169,7 +168,7 @@ void applyMove(Graphics & gr, Grid<int> & board, Move move) {
     board[move.start.getY()][move.start.getX()] = HOLE;
     board[mid_y][mid_x] = HOLE;
     board[move.end.getY()][move.end.getX()] = PEG;
-    animatePegMovement(gr, move.start, Point(mid_x, mid_y), move.end, false);
+    animatePegMovement(gr, move.start, Point(mid_x, mid_y), move.end, true);
 }
 
 void reverseMove(Graphics & gr, Grid<int> & board, Move move) {
@@ -178,7 +177,7 @@ void reverseMove(Graphics & gr, Grid<int> & board, Move move) {
     board[move.start.getY()][move.start.getX()] = PEG;
     board[mid_y][mid_x] = PEG;
     board[move.end.getY()][move.end.getX()] = HOLE;
-    animatePegMovement(gr, move.start, Point(mid_x, mid_y), move.end, true);
+    animatePegMovement(gr, move.start, Point(mid_x, mid_y), move.end, false);
 }
 
 GAME_STATE findPossibleMoves(Grid<int> & board, Vector<Move> & moves) {
@@ -228,35 +227,23 @@ GAME_STATE findPossibleMoves(Grid<int> & board, Vector<Move> & moves) {
     return moves.size() > 0 ? PLAYING : LOST;
 }
 
-void drawCell(Graphics & gr, Point pt, string color, bool is_filled) {
+void drawCell(Graphics & gr, Point pt, int color) {
     GWindow *window = gr.gw;
     GRectangle *rect = gr.rect;
     double size = gr.cell_size - gr.margin;
     int row = pt.getY();
     int col = pt.getX();
 
-    if (is_filled) {
-        window->setColor(color);
-        window->fillOval(rect->getX() + (col * gr.cell_size + gr.margin),
-                         rect->getY() + (row * gr.cell_size + gr.margin),
-                         size, size);
-    } else {
-        window->setColor(color);
-        window->fillOval(rect->getX() + (col * gr.cell_size + gr.margin),
-                         rect->getY() + (row * gr.cell_size + gr.margin),
-                         size, size);
-        // draw "ring" around it
-        window->setColor("black");
-        window->drawOval(rect->getX() + (col * gr.cell_size + gr.margin),
-                         rect->getY() + (row * gr.cell_size + gr.margin),
-                         size, size);
-    }
+    window->setColor(color);
+    window->fillOval(rect->getX() + (col * gr.cell_size + gr.margin),
+             rect->getY() + (row * gr.cell_size + gr.margin),
+             size, size);
 }
 
 bool solvePegSolitaire(Graphics & gr, Grid<int> & board, int level) {
     Vector<Move> moves;
 
-    pause(ANIMATION_SPEED);
+    //pause(ANIMATION_SPEED);
 
     switch (findPossibleMoves(board, moves)) {
     case WON: return true;
