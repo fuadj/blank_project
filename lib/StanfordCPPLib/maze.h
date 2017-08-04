@@ -73,6 +73,7 @@ public:
     */
     void drawMark(Point p, std::string color);
     void drawMark(Point p, int color);
+    void fillMark(Point p, int color, bool filled);
     void eraseMark(Point p);
 
 private:

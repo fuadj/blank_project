@@ -10,6 +10,7 @@
 #include <cmath>
 #include "filelib.h"
 #include <stdio.h>
+#include "gobjects.h"
 
 void Maze::initBoard(int numRows, int numCols, bool hasWalls) {
     startPosition = Point(0, 0);
@@ -176,6 +177,24 @@ void Maze::drawMark(Point p, int color) {
     gw->drawPolarLine(bottomX + p.getX()*cellSize + margin,
                       bottomY - (p.getY()*cellSize + cellSize - margin),
                       SQRT_OF_2 * length, -45);
+}
+
+void Maze::fillMark(Point p, int color, bool filled) {
+    checkWindowConfigured();
+    if (!pointInBounds(p))
+        error("PointT is not in bounds for maze");
+    double margin = cellSize*.2;
+    double length = cellSize - 2*margin;
+    gw->setColor(color);
+
+    double x = bottomX + p.getX()*cellSize + margin;
+    double y = bottomY - (p.getY()*cellSize + cellSize - margin);
+
+    if (filled) {
+        gw->fillOval( x, y, length, length);
+    } else {
+        gw->drawOval(x, y, length, length);
+    }
 }
 
 void Maze::eraseMark(Point p) {
