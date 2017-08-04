@@ -5,20 +5,27 @@
 #include "random.h"
 #include "gobjects.h"
 #include "console.h"
+#include "vector.h"
 
 using namespace std;
 
 void drawChessBackground(GWindow & gw, GRectangle & rect);
 double cellSizeForRect(GRectangle & rect);
 
-bool placeQueens(GWindow &gw, GRectangle &rect, Grid<bool> & queens, int col);
+bool findKnightTour(GWindow &gw, GRectangle &rect, Grid<int> & board, int row, int col, int level);
 
-const int ANIMATION_SPEED = 50;
+const int ANIMATION_SPEED = 5;
 const int N_CELLS = 8;
+const int N_TOTAL = N_CELLS * N_CELLS;
+const int EMPTY_CELL = -1;
+
+Vector<Point> KNIGHT_MOVES;
 
 int main() {
     GWindow gw(1000, 700);
-    Grid<bool> queens(N_CELLS, N_CELLS, false);
+    Grid<int> board(N_CELLS, N_CELLS, EMPTY_CELL);
+
+    KNIGHT_MOVES += Point(1,-2), Point(2,-1), Point(2,1), Point(1,2), Point(-1, 2), Point(-2,1), Point(-2,-1), Point(-1,-2);
 
     double width = gw.getWidth();
     double height = gw.getHeight();
@@ -28,13 +35,14 @@ int main() {
 
     drawChessBackground(gw, rect);
 
-    placeQueens(gw, rect, queens, 0);
+    findKnightTour(gw, rect, board, N_CELLS-1, 0, 0);
+    //findKnightTour(gw, rect, board, randomInteger(0, N_CELLS-1), randomInteger(0, N_CELLS-1), 0);
 
     return 0;
 }
 
 string colorForCell(int row, int col) {
-    return ((row + col) % 2 == 0) ? "white" : "#bbbbbb";
+    return ((row + col) % 2 == 0) ? "white" : "#999999";
 }
 
 void drawChessBackground(GWindow & gw, GRectangle & rect) {
@@ -62,7 +70,7 @@ double cellSizeForRect(GRectangle & rect) {
     return std::min(rect.getWidth()/N_CELLS, rect.getHeight()/N_CELLS);
 }
 
-void drawQueen(GWindow &gw, GRectangle &rect, int row, int col, bool place) {
+void drawKnight(GWindow &gw, GRectangle &rect, int knight, int row, int col, bool place) {
     double cell_size = cellSizeForRect(rect);
     double margin = 0.15 * cell_size;
 
@@ -70,56 +78,41 @@ void drawQueen(GWindow &gw, GRectangle &rect, int row, int col, bool place) {
     double y = ceil(rect.getY() + double(row) * cell_size);
 
     if (place) {
-        gw.setColor("blue");
+        gw.setColor("white");
         gw.fillOval(x+margin, y+margin, cell_size-2*margin, cell_size-2*margin);
+        GLabel *label = new GLabel(integerToString(knight));
+        label->setFont("Console-16");
+        label->setColor("black");
+        gw.draw(label,
+                x + (cell_size/2 - label->getWidth()/2),
+                y + (cell_size/2 + label->getFontAscent()/2));
+        delete label;
     } else {
         gw.setColor(colorForCell(row, col));
         gw.fillRect(x+margin, y+margin, cell_size-2*margin, cell_size-2*margin);
     }
 }
 
-bool canPlaceQueen(Grid<bool> & queens, int row, int col) {
-    if (queens[row][col]) return false;
+bool findKnightTour(GWindow &gw, GRectangle &rect, Grid<int> & board, int row, int col, int level) {
+    if (level == N_TOTAL) return true;
+    if ((row < 0 || col < 0) ||
+            (row >= board.numRows() || col >= board.numCols()))
+        return false;
+    if (board[row][col] != EMPTY_CELL) return false;
+    board[row][col] = level + 1;
+    drawKnight(gw, rect, board[row][col], row, col, true);
+    pause(ANIMATION_SPEED);
 
-    for (int i = 0; i < N_CELLS; i++) {
-        if (queens[i][col]) return false;		// vertical
-        if (queens[row][i]) return false;		// horizontal
+    //int move = randomInteger(0, KNIGHT_MOVES.size()-1);
+    for (int i = 0; i < KNIGHT_MOVES.size(); i++) {
+        if (findKnightTour(gw, rect, board,
+                           row + KNIGHT_MOVES[i].getY(),
+                           col + KNIGHT_MOVES[i].getX(),
+                           level + 1))
+            return true;
+        //move = (move + 1) % (KNIGHT_MOVES.size());
     }
-
-    int r = row, c = col;
-    while (r > 0 && c > 0) { // top-left diagonal
-        r--; c--;
-    }
-    while (r < N_CELLS && c < N_CELLS)
-        if (queens[r++][c++]) return false;
-
-    r = row; c = col;
-    while (r < (N_CELLS-1) && c > 0) { 		// top-right diagonal
-        r++; c --;
-    }
-
-    while (r > 0 && c < N_CELLS)
-        if (queens[r--][c++]) return false;
-
-    return true;
-}
-
-bool placeQueens(GWindow &gw, GRectangle &rect, Grid<bool> & queens, int col) {
-    if (col >= queens.numCols()) return true;		// we've finished
-
-    int row = randomInteger(0, (N_CELLS-1));
-    for (int i = 0; i < N_CELLS; i++) {
-        if (canPlaceQueen(queens, row, col)) {
-            queens[row][col] = true;
-            drawQueen(gw, rect, row, col, true);
-            pause(ANIMATION_SPEED);
-            if (placeQueens(gw, rect, queens, col + 1))
-                return true;
-            queens[row][col] = false;
-            drawQueen(gw, rect, row, col, false);
-        }
-        row = (row + 1) % N_CELLS;
-    }
-
+    board[row][col] = EMPTY_CELL;
+    drawKnight(gw, rect, board[row][col], row, col, false);
     return false;
 }
