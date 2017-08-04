@@ -1,109 +1,123 @@
 #include <cmath>
 #include "gwindow.h"
-#include "maze.h"
 #include "point.h"
-#include "console.h"
 #include "grid.h"
 #include "random.h"
+#include "gobjects.h"
+#include "console.h"
 
 using namespace std;
 
-void fillRegion(GWindow &gw, const GRectangle & rect, Grid<bool> &pixels, int row, int col);
-void drawCell(GWindow &gw, const GRectangle & rect, Grid<bool> &grid, int row, int col);
-void drawGrid(GWindow &gw, const GRectangle & rect, Grid<bool> &grid);
+void drawChessBackground(GWindow & gw, GRectangle & rect);
+double cellSizeForRect(GRectangle & rect);
 
-const int N_ROWS = 23;
-const int N_COLS = 19;
+bool placeQueens(GWindow &gw, GRectangle &rect, Grid<bool> & queens, int col);
+
 const int ANIMATION_SPEED = 50;
-
-void initGridPic(Grid<bool> & grid) {
-    for (int row = 9; row < N_ROWS; row++) {
-        grid[row][0] = true;			// left wall
-        grid[row][N_COLS-1] = true;		// right wall
-    }
-    for (int col = 0; col < N_COLS; col++)
-        grid[N_ROWS-1][col] = true;		// bottom floor
-    for (int row = 9, col = 0; row >= 0; row--, col++) {
-        grid[row][col] = true;		// left ceiling
-    }
-    for (int row = 0, col = 9; row <= 9; row++, col++) {
-        grid[row][col] = true;		// right ceiling
-    }
-
-    // the windows
-    for (int i = 0; i < 4; i++) {
-        // verticals
-        grid[10 + i][3] = true;
-        grid[10 + i][6] = true;
-        grid[10 + i][12] = true;
-        grid[10 + i][15] = true;
-
-        // horizontals
-        grid[10][3+i] = true;
-        grid[10][12+i] = true;
-        grid[13][3+i] = true;
-        grid[13][12+i] = true;
-    }
-
-    // door vertical
-    for (int i = 0; i < 6; i++) {
-        grid[16+i][7] = true;
-        grid[16+i][11] = true;
-    }
-    for (int i = 0; i < 5; i++)
-        grid[16][7+i] = true;
-}
+const int N_CELLS = 8;
 
 int main() {
     GWindow gw(1000, 700);
-    Grid<bool> grid(23, 19, false);
+    Grid<bool> queens(N_CELLS, N_CELLS, false);
 
-    initGridPic(grid);
     double width = gw.getWidth();
     double height = gw.getHeight();
-    double x = width * 0.4;
+    double x = width * 0.3;
     double y = width * 0.1;
     GRectangle rect = GRectangle(x, y, width-2.0*x, height-2.0*y);
-    drawGrid(gw, rect, grid);
-    fillRegion(gw, rect, grid, randomInteger(0, N_ROWS-1), randomInteger(0, N_COLS-1));
+
+    drawChessBackground(gw, rect);
+
+    placeQueens(gw, rect, queens, 0);
+
     return 0;
 }
 
-void fillRegion(GWindow &gw, const GRectangle & rect, Grid<bool> &pixels, int row, int col) {
-    if (row < 0 || row >= pixels.numRows()) return;
-    if (col < 0 || col >= pixels.numCols()) return;
-    if (pixels[row][col] == true) return;		// if it is black
-
-    pixels[row][col] = true;
-    pause(ANIMATION_SPEED);
-    gw.setColor("blue");
-    drawCell(gw, rect, pixels, row, col);
-    fillRegion(gw, rect, pixels, row-1, col);
-    fillRegion(gw, rect, pixels, row+1, col);
-    fillRegion(gw, rect, pixels, row, col-1);
-    fillRegion(gw, rect, pixels, row, col+1);
+string colorForCell(int row, int col) {
+    return ((row + col) % 2 == 0) ? "white" : "#bbbbbb";
 }
 
-void drawCell(GWindow &gw, const GRectangle & rect, Grid<bool> &grid, int row, int col) {
-    double size = std::min((rect.getWidth()/N_COLS), (rect.getHeight()/N_ROWS));
-    double margin = 0.15 * size;
-    double cell_x = rect.getX() + col * size + margin;
-    double cell_y = rect.getY() + row * size + margin;
+void drawChessBackground(GWindow & gw, GRectangle & rect) {
+    double cell_size = cellSizeForRect(rect);
 
-    if (grid[row][col]) {		// filled
-        gw.fillOval(cell_x, cell_y, size - margin, size - margin);
-    } else {
-        gw.drawOval(cell_x, cell_y, size - margin, size - margin);
-    }
-}
+    for (int i = 0; i < N_CELLS; i++) {
+        for (int j = 0; j < N_CELLS; j++) {
+            double x = ceil(rect.getX() + double(i) * cell_size);
+            double y = ceil(rect.getY() + double(j) * cell_size);
 
-void drawGrid(GWindow &gw, const GRectangle & rect, Grid<bool> &grid) {
-    gw.setColor("white");
-    gw.fillRect(rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight());
-    gw.setColor("black");
-    for (int row = 0; row < grid.numRows(); row++) {
-        for (int col = 0; col < grid.numCols(); col++) {
-            drawCell(gw, rect, grid, row, col);
+            GRect *cell = new GRect(cell_size, cell_size);
+            cell->setFilled(true);
+            cell->setColor(colorForCell(i, j));
+            gw.draw(cell, x, y);
+            gw.remove(cell);
+            delete cell;
         }
     }
+    gw.setColor("black");
+    // draw outer "enclosure"
+    gw.drawRect(rect.getX(), rect.getY(), ceil(cell_size * N_CELLS), ceil(cell_size * N_CELLS));
+}
+
+double cellSizeForRect(GRectangle & rect) {
+    return std::min(rect.getWidth()/N_CELLS, rect.getHeight()/N_CELLS);
+}
+
+void drawQueen(GWindow &gw, GRectangle &rect, int row, int col, bool place) {
+    double cell_size = cellSizeForRect(rect);
+    double margin = 0.15 * cell_size;
+
+    double x = ceil(rect.getX() + double(col) * cell_size);
+    double y = ceil(rect.getY() + double(row) * cell_size);
+
+    if (place) {
+        gw.setColor("blue");
+        gw.fillOval(x+margin, y+margin, cell_size-2*margin, cell_size-2*margin);
+    } else {
+        gw.setColor(colorForCell(row, col));
+        gw.fillRect(x+margin, y+margin, cell_size-2*margin, cell_size-2*margin);
+    }
+}
+
+bool canPlaceQueen(Grid<bool> & queens, int row, int col) {
+    if (queens[row][col]) return false;
+
+    for (int i = 0; i < N_CELLS; i++) {
+        if (queens[i][col]) return false;		// vertical
+        if (queens[row][i]) return false;		// horizontal
+    }
+
+    int r = row, c = col;
+    while (r > 0 && c > 0) { // top-left diagonal
+        r--; c--;
+    }
+    while (r < N_CELLS && c < N_CELLS)
+        if (queens[r++][c++]) return false;
+
+    r = row; c = col;
+    while (r < (N_CELLS-1) && c > 0) { 		// top-right diagonal
+        r++; c --;
+    }
+
+    while (r > 0 && c < N_CELLS)
+        if (queens[r--][c++]) return false;
+
+    return true;
+}
+
+bool placeQueens(GWindow &gw, GRectangle &rect, Grid<bool> & queens, int col) {
+    if (col >= queens.numCols()) return true;		// we've finished
+
+    for (int row = 0; row < N_CELLS; row++) {
+        if (canPlaceQueen(queens, row, col)) {
+            queens[row][col] = true;
+            drawQueen(gw, rect, row, col, true);
+            pause(ANIMATION_SPEED);
+            if (placeQueens(gw, rect, queens, col + 1))
+                return true;
+            queens[row][col] = false;
+            drawQueen(gw, rect, row, col, false);
+        }
+    }
+
+    return false;
 }
