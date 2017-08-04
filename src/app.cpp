@@ -107,7 +107,8 @@ bool canPlaceQueen(Grid<bool> & queens, int row, int col) {
 bool placeQueens(GWindow &gw, GRectangle &rect, Grid<bool> & queens, int col) {
     if (col >= queens.numCols()) return true;		// we've finished
 
-    for (int row = 0; row < N_CELLS; row++) {
+    int row = randomInteger(0, (N_CELLS-1));
+    for (int i = 0; i < N_CELLS; i++) {
         if (canPlaceQueen(queens, row, col)) {
             queens[row][col] = true;
             drawQueen(gw, rect, row, col, true);
@@ -117,6 +118,7 @@ bool placeQueens(GWindow &gw, GRectangle &rect, Grid<bool> & queens, int col) {
             queens[row][col] = false;
             drawQueen(gw, rect, row, col, false);
         }
+        row = (row + 1) % N_CELLS;
     }
 
     return false;
